@@ -1,0 +1,5 @@
+// 地址
+export const address = {
+  // 后端
+  backend: `${window.location.protocol}//${window.location.hostname}:731`,
+};
