@@ -58,16 +58,6 @@ export default {
 
     // 获取随机文字
     function getText() {
-        // var val = Math.random() * 10;
-        // if (val > 1 && val <= 3) {
-        //     return "爱你一辈子";
-        // } else if (val > 3 && val <= 5) {
-        //     return "亲爱的，爱你！";
-        // } else if (val > 5 && val <= 7) {
-        //     return "喜欢你";
-        // } else {
-        //     return "I Love You";
-        // }
 
         const textArray = [
             "爱你一辈子！",

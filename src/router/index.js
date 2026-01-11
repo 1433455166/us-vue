@@ -1,4 +1,5 @@
 import { createRouter, createWebHashHistory } from "vue-router";
+import { passwordGuard } from './guards';
 
 const routes = [
     {
@@ -12,6 +13,7 @@ const routes = [
     {
         path: "/love",
         component: () => import("../views/love.vue"),
+        beforeEnter: passwordGuard,
     },
 ];
 
