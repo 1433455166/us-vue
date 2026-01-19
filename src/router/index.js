@@ -15,6 +15,32 @@ const routes = [
         component: () => import("../views/love.vue"),
         beforeEnter: passwordGuard,
     },
+    {
+        path: "/novel",
+        component: () => import("../views/novel.vue"),
+        beforeEnter: passwordGuard,
+    },
+    {
+        path: '/bookList',
+        name: 'bookList',
+        component: () => import("../views/noveList.vue"),
+        beforeEnter: passwordGuard,
+    },
+    {
+        path: '/reader/:id',
+        name: 'Reader',
+        component: () => import("../views/reader.vue"),
+    },
+    {
+        path: '/book/:id',
+        name: 'Book',
+        component: () => import("../views/reader.vue"),
+    },
+    {
+        path: '/test',
+        name: 'test',
+        component: () => import("../views/test.vue"),
+    }
 ];
 
 const router = createRouter({

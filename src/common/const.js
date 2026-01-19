@@ -5,4 +5,4 @@ export const address = {
 };
 
 // 访问密码 yourSecretPassword
-export const accessPassword = 'lovePassword';
+export const accessPassword = 'lzPassword';

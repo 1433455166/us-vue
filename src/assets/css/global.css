@@ -1,0 +1,48 @@
+@font-face {
+  font-family: 'NotoSerifSC-Medium'; /* 思源宋体 Medium */
+  src: url('../../assets/fonts/NotoSerifSC-Medium.ttf');
+}
+@font-face {
+  font-family: 'LongCang'; /* 龙苍 */
+  src: url('../../assets/fonts/LongCang-Regular.ttf');
+}
+@font-face {
+  font-family: 'MaShanZheng'; /* 马山郑 */
+  src: url('../../assets/fonts/MaShanZheng-Regular.ttf');
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#app {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* 自定义滚动条 */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}

@@ -14,18 +14,36 @@
         :content="item.content"
       />
     </main>
+    <BaseModal
+        v-model="showModal"
+        title="基础提示"
+        :animation="true"
+        animation-type="zoom"
+        @confirm="handleConfirm"
+    >
+        <DailyPop />
+    </BaseModal>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import DeviceCard from '../components/DeviceCard.vue'
+import DailyPop from '../components/DailyPop.vue'
+import BaseModal from '../components/Modal/BaseModal.vue';
 
 // 卡片数据
 const cards = ref([
-  { title: '卡片1', content: '卡片1 内容' },
+  { title: '弹窗测试', content: '点击弹出一个测试弹窗, 已弃用' },
   { title: '卡片2', content: '卡片2 内容' }
 ])
+
+const showModal = ref(true);
+
+const handleConfirm = () => {
+    showModal.value = false;
+    console.log('确认操作');
+}
 </script>
 
 <style scoped>
