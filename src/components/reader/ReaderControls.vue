@@ -120,19 +120,23 @@ const handleNext = () => {
 .chapter-progress {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  font-size: 24lpx;
+  /* justify-content: space-between; */
+  justify-content: end;
+  font-size: 18lpx;
   color: #666;
 }
 
 .progress-dots {
   display: flex;
-  gap: 6lpx;
+  justify-content: space-between;
+  /* gap: 4lpx; */
+  width: 588lpx;
+  margin-left: 8lpx;
 }
 
 .dot {
-  width: 10lpx;
-  height: 10lpx;
+  width: 6lpx;
+  height: 6lpx;
   border-radius: 50%;
   background: #e0e0e0;
   cursor: pointer;

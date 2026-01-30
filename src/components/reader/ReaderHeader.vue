@@ -27,7 +27,12 @@
   </header>
 </template>
 <script setup>
-defineProps({
+import Cookies from 'js-cookie';
+import { useRoute } from 'vue-router'
+
+const route = useRoute();
+
+const props = defineProps({
   title: String,
   author: String,
   currentChapter: Object
@@ -36,6 +41,11 @@ defineProps({
 defineEmits(['toggle-chapter-list', 'toggle-settings']);
 
 function goBack() {
+    const novelId = route.params?.id
+    const readerProgress = JSON.parse(Cookies.get('readerProgress') || '{}');
+    const readerProgressCookie = { ...readerProgress, [novelId]: props?.currentChapter?.id }
+    // 设置 cookie
+    Cookies.set('readerProgress', JSON.stringify(readerProgressCookie), { expires: 7 }); // 有效期为7天
     window.history.back();
 }
 </script>

@@ -14,13 +14,14 @@
     
     <!-- 阅读区域 -->
     <main class="reader-main" @click="handleTap">
-      <div class="reader-content" ref="contentRef">
+      <Loading containerClass="reader-loading" v-if="loading"/>
+      <div class="reader-content" ref="contentRef" v-else>
         <h2 class="chapter-title">{{ currentChapter?.title }}</h2>
-        <div 
-          class="chapter-content" 
+        <div
+          class="chapter-content"
           v-html="formattedContent"
           :style="contentStyle"
-        ></div>
+        />
       </div>
       
       <!-- 阅读进度 -->
@@ -72,33 +73,83 @@
   </div>
 </template>
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import ReaderHeader from '../components/reader/ReaderHeader.vue'
 import ReaderControls from '../components/reader/ReaderControls.vue'
 import ChapterList from '../components/reader/ChapterList.vue'
 import ReaderSettings from '../components/reader/ReaderSettings.vue'
-
+import Loading from '../components/Loading/default.vue';
+import Cookies from 'js-cookie';
 import { useRoute } from 'vue-router'
 import { novels } from '../data/novels.js'
 import threeBoby1 from '../data/threeBody/threeBoby1.json'
 
-const route = useRoute()
+import { getThreeBodyData } from "../utils/api";
 
-const novelText = threeBoby1.chapters;
-console.log('novelText', novelText);
+// 响应式数据
+const loading = ref(true)
+const error = ref(false)
+const novelInfo = ref({})
+const chapters = ref([])
+const currentChapter = ref(null)
+
+const route = useRoute()
 
 // 根据路由参数获取小说ID
 const novelId = route.params.id
 
-// 获取小说信息
-const novelInfo = ref(novels.find(n => n.id === novelId) || novels[0])
+// 加载数据
+const loadNovelData = async () => {
+  loading.value = true
+  error.value = false
+  
+  try {
+    // 1. 获取小说信息
+    novelInfo.value = novels.find(n => n.id === novelId) || novels[0]
+    const part = ["", 'sati', 'sati2', 'sati3'].indexOf(novelId);
 
-// 这里可以根据 novelId 加载对应的小说章节数据
-// 实际项目中应该从API获取数据
-const chapters = novelText // 暂时先用三体数据
-
-// 当前章节
-const currentChapter = ref(chapters[0]);
+    // 2. 尝试从API获取章节数据
+    const res = await getThreeBodyData({ part });
+    
+    const data = res?.data || {};
+    
+    if (res?.success && data?.chapters?.length > 0) {
+      // 使用API返回的数据
+      chapters.value = data.chapters
+    } else {
+      // 回退到本地JSON数据
+      console.warn('API返回数据异常，使用本地数据')
+      chapters.value = threeBoby1.chapters || []
+    }
+    
+    // 3. 设置当前章节
+    if (chapters.value.length > 0) {
+        const readerProgress = JSON.parse(Cookies.get('readerProgress') || '{}');
+        const progress = readerProgress[novelId] - 1 || 0;
+        currentChapter.value = chapters.value[progress]
+    } else {
+      // 如果没有章节数据，创建空章节
+      currentChapter.value = {
+        id: 1,
+        title: '暂无内容',
+        content: ['本章节内容正在准备中...']
+      }
+    }
+    
+  } catch (err) {
+    console.error('加载小说数据失败:', err)
+    error.value = true
+    
+    // 出错时使用本地数据
+    novelInfo.value = novels[0] || {}
+    chapters.value = threeBoby1.chapters || []
+    if (chapters.value.length > 0) {
+      currentChapter.value = chapters.value[0]
+    }
+  } finally {
+    loading.value = false
+  }
+}
 
 // 状态控制
 const showChapterList = ref(false)
@@ -136,15 +187,17 @@ const contentStyle = computed(() => ({
 
 const formattedContent = computed(() => {
   return currentChapter.value?.content.join(',')
-    // .replace(/\n/g, '<br>')
     .replace(/,/g, '<br><br>')
     .replace(/\s{4,}/g, '<p class="indent"></p>')
 });
 
-// 方法
+// 上一章下一章 - 注意要使用 .value
 const goToChapter = (chapterId) => {
-  if (chapterId >= 1 && chapterId <= chapters.length) {
-    currentChapter.value = chapters[chapterId - 1]
+  if (!chapters.value || chapters.value.length === 0) return
+  
+  const index = chapterId - 1
+  if (index >= 0 && index < chapters.value.length) {
+    currentChapter.value = chapters.value[index]
     showChapterList.value = false
     readingProgress.value = 0
     setTimeout(() => {
@@ -172,6 +225,25 @@ const toggleNightMode = () => {
 const updateSettings = (newSettings) => {
   readerSettings.value = { ...readerSettings.value, ...newSettings }
 }
+
+let scrollHandler = null
+
+// 监听 contentRef 的变化
+watch(contentRef, (newEl, oldEl) => {
+  // 移除旧元素的事件监听
+  if (oldEl && scrollHandler) {
+    oldEl.removeEventListener('scroll', scrollHandler)
+  }
+  
+  // 为新元素添加事件监听
+  if (newEl) {
+    scrollHandler = handleScroll
+    newEl.addEventListener('scroll', scrollHandler)
+    
+    // 初始滚动位置
+    newEl.scrollTop = 0
+  }
+}, { flush: 'post' }) // 'post' 确保DOM已更新
 
 // 监听滚动进度
 const handleScroll = () => {
@@ -207,20 +279,22 @@ const handleKeyDown = (e) => {
 
 // 生命周期
 onMounted(() => {
-  if (contentRef.value) {
-    contentRef.value.addEventListener('scroll', handleScroll)
-  }
-  window.addEventListener('keydown', handleKeyDown)
-  
-  // 3秒后隐藏提示
-  setTimeout(() => {
-    showTapHint.value = false
-  }, 3000)
+    loadNovelData() // 页面加载时获取数据
+
+    if (contentRef.value) {
+        contentRef.value.addEventListener('scroll', handleScroll)
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    
+    // 3秒后隐藏提示
+    setTimeout(() => {
+        showTapHint.value = false
+    }, 3000)
 })
 
 onUnmounted(() => {
-  if (contentRef.value) {
-    contentRef.value.removeEventListener('scroll', handleScroll)
+  if (contentRef.value && scrollHandler) {
+    contentRef.value.removeEventListener('scroll', scrollHandler)
   }
   window.removeEventListener('keydown', handleKeyDown)
 })
@@ -289,6 +363,11 @@ onUnmounted(() => {
   background-color: #0a0a0a;
   color: #888;
   filter: invert(90%) hue-rotate(180deg);
+}
+
+.reader-loading {
+    height: 100vh;
+    justify-content: center !important;
 }
 
 /* 阅读主区域 */

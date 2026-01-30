@@ -145,6 +145,9 @@ const selectChapter = (chapterId) => {
     color: #333;
     font-weight: 500;
     width: 308lpx;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .item-meta {

@@ -2,7 +2,9 @@ import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import postcssPxToViewport from 'postcss-px-to-viewport'
 
-const address = 'http://192.168.31.173:731';
+// const address = `${window.location.protocol}//${window.location.hostname}:731` // 本地
+// const address = 'http://localhost:731' // 本地
+const address = 'http://154.64.235.142:731'; // 线上环境
 
 // https://vite.dev/config/
 export default defineConfig({

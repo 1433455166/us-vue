@@ -31,7 +31,7 @@ export default {
         // 密码正确，继续访问
         this.$emit('success');
         // 设置 cookie
-        Cookies.set('accessPassword', accessPassword, { expires: 1 }); // 有效期为7天
+        Cookies.set('accessPassword', accessPassword, { expires: 1 }); // 有效期为1天
 
       } else {
         // 密码错误，跳转到谷歌首页

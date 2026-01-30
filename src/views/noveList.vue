@@ -116,7 +116,7 @@ const filteredNovels = computed(() => {
 
 const goToReader = (novelId) => {
     // 目前只限制 三体 可以点进去
-    if (novelId !== 'sati') return;
+    if (!['sati', 'sati2', 'sati3'].includes(novelId)) return;
     router.push(`/reader/${novelId}`);
 }
 
