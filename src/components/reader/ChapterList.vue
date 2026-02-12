@@ -10,30 +10,35 @@
         </button>
       </div>
       
-      <div class="list-content">
-        <div 
-          v-for="chapter in chapters" 
-          :key="chapter.id"
-          class="chapter-item"
-          :class="{ active: chapter.id === currentId }"
-          @click="selectChapter(chapter.id)"
-        >
-          <div class="item-main">
-            <span class="chapter-number">第{{ chapter.id }}章</span>
-            <span class="word-count">{{ chapter.wordCount }}字</span>
-          </div>
-          <div>
-            <span class="chapter-title">{{ chapter.title }}</span>
-          </div>
-          <div class="item-meta">
-            <span class="read-time">{{ chapter.readTime }}</span>
-          </div>
-        </div>
+      <div class="list-content" ref="listRef">
+        <ChapterItem
+            v-for="volume in chapters"
+            :key="volume.volumeId || volume.id"
+            :chapter="volume"
+            :currentId="currentId"
+            :expandedMap="expandedMap"
+            @select="selectChapter"
+            :setItemRef="(el, id) => setItemRef(el, id)"
+        />
       </div>
+
+        <!-- 定位器 -->
+        <button
+            v-show="showLocator"
+            class="locator-btn"
+            @click="scrollToCurrent"
+        >
+            📍
+        </button>
     </div>
   </div>
 </template>
 <script setup>
+import { onMounted, watch, nextTick, ref, reactive } from 'vue'
+import ChapterItem from "./ChapterItem.vue"
+
+const expandedMap = reactive({})
+
 const props = defineProps({
   chapters: Array,
   currentId: Number
@@ -45,6 +50,93 @@ const selectChapter = (chapterId) => {
   emit('select-chapter', chapterId)
   emit('close')
 }
+
+// 定位器
+const itemRefs = new Map()
+const listRef = ref(null)
+const showLocator = ref(false)
+
+const setItemRef = (el, id) => {
+  if (el) {
+    itemRefs.set(id, el)
+  }
+}
+
+const scrollToCurrent = async () => {
+  await nextTick()
+
+  const el = listRef.value?.querySelector(
+    `[data-id="${props.currentId}"]`
+  )
+
+  if (!el) return
+
+  el.scrollIntoView({
+    behavior: "smooth",
+    block: "center"
+  })
+
+    requestAnimationFrame(() => {
+        checkCurrentVisible()
+    })
+}
+
+const checkCurrentVisible = () => {
+  const listEl = listRef.value
+  if (!listEl) return
+
+  const itemEl = listEl.querySelector(
+    `[data-id="${props.currentId}"]`
+  )
+
+  if (!itemEl) {
+    showLocator.value = false
+    return
+  }
+
+  const listRect = listEl.getBoundingClientRect()
+  const itemRect = itemEl.getBoundingClientRect()
+
+  const visible =
+    itemRect.top >= listRect.top &&
+    itemRect.bottom <= listRect.bottom
+
+    // const visible =
+    // itemEl.offsetTop >= listEl.scrollTop &&
+    // itemEl.offsetTop + itemEl.offsetHeight <=
+    //     listEl.scrollTop + listEl.clientHeight;
+
+  showLocator.value = !visible
+}
+
+/* =====================
+   生命周期
+===================== */
+onMounted(async () => {
+    expandParentVolume(props.currentId);
+    await nextTick(scrollToCurrent);
+    scrollToCurrent();
+    listRef.value?.addEventListener('scroll', checkCurrentVisible);
+})
+
+const expandParentVolume = (chapterId) => {
+  props.chapters.forEach(volume => {
+    const found = volume.chapters?.some(
+      c => c.id === chapterId
+    )
+
+    if (found) {
+      expandedMap[volume.volumeId] = true
+    }
+  })
+}
+
+watch(() => props.currentId, async () => {
+    expandParentVolume(props.currentId);
+    await nextTick();
+    scrollToCurrent();
+})
+
 </script>
 <style scoped>
 .chapter-list-overlay {
@@ -86,8 +178,7 @@ const selectChapter = (chapterId) => {
 .close-btn {
   background: none;
   border: none;
-  padding: 8px;
-  border-radius: 50%;
+  padding: 0;
   cursor: pointer;
   color: #666;
   transition: all 0.2s;
@@ -107,14 +198,10 @@ const selectChapter = (chapterId) => {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 20lpx 30lpx;
+    padding: 12lpx 18lpx;
     border-bottom: 1px solid #f5f5f5;
     cursor: pointer;
     transition: all 0.2s;
-}
-
-.chapter-item:hover {
-  background: #f9f9f9;
 }
 
 .chapter-item.active {
@@ -134,9 +221,9 @@ const selectChapter = (chapterId) => {
 }
 
 .chapter-number {
-  font-size: 14px;
+  font-size: 24lpx;
   color: #666;
-  min-width: 50px;
+  width: 100lpx;
 }
 
 .chapter-title {
@@ -155,6 +242,30 @@ const selectChapter = (chapterId) => {
   justify-content: space-between;
   font-size: 12px;
   color: #999;
+}
+
+.locator-btn {
+    position: absolute;
+    right: 32lpx;
+    bottom: 49lpx;
+    z-index: 10;
+
+    background: #aaa;
+    border: none;
+    padding: 8lpx 14lpx;
+    font-size: 32lpx;
+    cursor: pointer;
+
+    box-shadow: 0 4lpx 12lpx rgba(0,0,0,0.15);
+    transition: all 0.2s;
+
+    border-radius: 50%;
+    width: 72lpx;
+    height: 72lpx;
+}
+
+.locator-btn:hover {
+  transform: translateY(-2px);
 }
 
 @keyframes fadeIn {

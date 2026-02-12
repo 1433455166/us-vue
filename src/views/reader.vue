@@ -38,7 +38,7 @@
         <ReaderControls 
             v-show="showControls"
             :currentChapter="currentChapter"
-            :totalChapters="chapters.length"
+            :totalChapters="chapterData.length"
             @prev-chapter="goToChapter(currentChapter.id - 1)"
             @next-chapter="goToChapter(currentChapter.id + 1)"
             @toggle-night-mode="toggleNightMode"
@@ -83,8 +83,7 @@ import Cookies from 'js-cookie';
 import { useRoute } from 'vue-router'
 import { novels } from '../data/novels.js'
 import threeBoby1 from '../data/threeBody/threeBoby1.json'
-
-import { getThreeBodyData } from "../utils/api";
+import { getNovelData } from "../utils/api";
 
 // 响应式数据
 const loading = ref(true)
@@ -106,16 +105,21 @@ const loadNovelData = async () => {
   try {
     // 1. 获取小说信息
     novelInfo.value = novels.find(n => n.id === novelId) || novels[0]
-    const part = ["", 'sati', 'sati2', 'sati3'].indexOf(novelId);
 
     // 2. 尝试从API获取章节数据
-    const res = await getThreeBodyData({ part });
+    const res = await getNovelData({ novelName: novelId, folderName: novelInfo.value.folderName });
     
     const data = res?.data || {};
     
+    // 没有卷的数据类型
     if (res?.success && data?.chapters?.length > 0) {
       // 使用API返回的数据
       chapters.value = data.chapters
+    } else if (res?.success && data?.volume?.length > 0) {
+      // 分卷的数据类型
+      const list = [];
+      data.volume?.forEach((volume) => { list.push(...volume?.chapters) });
+      chapters.value = data.volume;
     } else {
       // 回退到本地JSON数据
       console.warn('API返回数据异常，使用本地数据')
@@ -126,7 +130,7 @@ const loadNovelData = async () => {
     if (chapters.value.length > 0) {
         const readerProgress = JSON.parse(Cookies.get('readerProgress') || '{}');
         const progress = readerProgress[novelId] - 1 || 0;
-        currentChapter.value = chapters.value[progress]
+        currentChapter.value = chapterData.value[progress]
     } else {
       // 如果没有章节数据，创建空章节
       currentChapter.value = {
@@ -188,24 +192,36 @@ const contentStyle = computed(() => ({
 const formattedContent = computed(() => {
   return currentChapter.value?.content.join(',')
     .replace(/,/g, '<br><br>')
-    .replace(/\s{4,}/g, '<p class="indent"></p>')
+    .replace(/\s{4,}/g, '　　')
+});
+
+const chapterData = computed(() => {
+    // 卷的情况
+    const isVolumeId = !!chapters.value?.find(c => c.volumeId);
+    const data = isVolumeId ? chapters.value.reduce((acc, cur) => {
+        acc.push(...cur.chapters);
+        return acc;
+    }, []) : chapters.value;
+    return data
 });
 
 // 上一章下一章 - 注意要使用 .value
 const goToChapter = (chapterId) => {
-  if (!chapters.value || chapters.value.length === 0) return
-  
-  const index = chapterId - 1
-  if (index >= 0 && index < chapters.value.length) {
-    currentChapter.value = chapters.value[index]
-    showChapterList.value = false
-    readingProgress.value = 0
-    setTimeout(() => {
-      if (contentRef.value) {
-        contentRef.value.scrollTop = 0
-      }
-    }, 100)
-  }
+    const data = chapterData.value;
+    
+    if (!data || data.length === 0) return;
+
+    const index = chapterId - 1;
+    if (index >= 0 && index < data.length) {
+        currentChapter.value = data[index]
+        showChapterList.value = false
+        readingProgress.value = 0
+        setTimeout(() => {
+            if (contentRef.value) {
+                contentRef.value.scrollTop = 0
+            }
+        }, 100)
+    }
 }
 
 const handleTap = () => {

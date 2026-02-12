@@ -72,6 +72,7 @@ function goBack() {
 .header-info {
   display: flex;
   flex-direction: column;
+  align-items: start;
 }
 
 .novel-title {
@@ -98,11 +99,6 @@ function goBack() {
   justify-content: center;
   color: #666;
   transition: all 0.2s;
-}
-
-.icon-btn:hover {
-  background: rgba(0, 0, 0, 0.1);
-  color: #333;
 }
 
 .chapter-info {

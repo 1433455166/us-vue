@@ -71,7 +71,7 @@ const handleNext = () => {
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   border-top: 1px solid rgba(0, 0, 0, 0.1);
-  padding: 15px 20px;
+  padding: 10px 18lpx;
   position: sticky;
   bottom: 0;
   z-index: 100;
@@ -93,14 +93,9 @@ const handleNext = () => {
   border: 1px solid #e0e0e0;
   border-radius: 25lpx;
   cursor: pointer;
-  font-size: 14lpx;
+  font-size: 24lpx;
   color: #333;
   transition: all 0.2s;
-}
-
-.control-btn:hover:not(.disabled) {
-  background: #f5f5f5;
-  border-color: #ccc;
 }
 
 .control-btn.disabled {
@@ -109,7 +104,7 @@ const handleNext = () => {
 }
 
 .control-btn.icon-only {
-  padding: 10px;
+  padding: 10lpx;
 }
 
 .control-center {
@@ -120,8 +115,7 @@ const handleNext = () => {
 .chapter-progress {
   display: flex;
   align-items: center;
-  /* justify-content: space-between; */
-  justify-content: end;
+  justify-content: center;
   font-size: 18lpx;
   color: #666;
 }
@@ -150,20 +144,5 @@ const handleNext = () => {
 
 .dot:hover {
   background: #ccc;
-}
-
-@media (max-width: 768px) {
-  .reader-controls {
-    padding: 10px 15px;
-  }
-  
-  .control-btn {
-    padding: 8px 15px;
-    font-size: 13px;
-  }
-  
-  .control-btn.icon-only {
-    padding: 8px;
-  }
 }
 </style>

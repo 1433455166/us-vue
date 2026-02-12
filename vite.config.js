@@ -4,6 +4,8 @@ import postcssPxToViewport from 'postcss-px-to-viewport'
 
 // const address = `${window.location.protocol}//${window.location.hostname}:731` // 本地
 // const address = 'http://localhost:731' // 本地
+// const address = 'http://192.168.31.106:731' // 本地
+
 const address = 'http://154.64.235.142:731'; // 线上环境
 
 // https://vite.dev/config/

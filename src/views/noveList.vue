@@ -11,7 +11,7 @@
       <section v-if="activeCategory === 'all'" class="recommend-section">
         <div class="recommend-list">
           <BookCard 
-            v-for="novel in hotNovels"
+            v-for="novel in novels"
             :key="novel.id"
             :novel="novel"
             :view-mode="viewMode"
@@ -63,10 +63,6 @@ const currentPage = ref(1)
 const showBackToTop = ref(false)
 
 // 计算属性
-const hotNovels = computed(() => {
-  return novels.filter(novel => novel.isHot).slice(0, 4)
-})
-
 const filteredNovels = computed(() => {
   let result = [...novels]
   
@@ -115,8 +111,6 @@ const filteredNovels = computed(() => {
 })
 
 const goToReader = (novelId) => {
-    // 目前只限制 三体 可以点进去
-    if (!['sati', 'sati2', 'sati3'].includes(novelId)) return;
     router.push(`/reader/${novelId}`);
 }
 

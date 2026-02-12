@@ -12,7 +12,7 @@
           <label>字体大小</label>
           <div class="setting-controls">
             <button class="size-btn" @click="updateFontSize(-1)">A-</button>
-            <span class="size-value">{{ settings.fontSize }}px</span>
+            <span class="size-value">{{ settings.fontSize }}</span>
             <button class="size-btn" @click="updateFontSize(1)">A+</button>
           </div>
         </div>
@@ -182,24 +182,20 @@ watch(() => props.settings, (newSettings) => {
 }
 
 .size-btn {
-  width: 40px;
-  height: 40px;
+  width: 81lpx;
+  height: 81lpx;
   border-radius: 50%;
   border: 2lpx solid #e0e0e0;
   background: white;
   color: #333;
-  font-size: 18px;
+  font-size: 36lpx;
   font-weight: bold;
   cursor: pointer;
   transition: all 0.2s;
   display: flex;
   justify-content: center;
   align-items: center;
-}
-
-.size-btn:hover {
-  border-color: #4a90e2;
-  color: #4a90e2;
+  padding: 0;
 }
 
 .size-value {
