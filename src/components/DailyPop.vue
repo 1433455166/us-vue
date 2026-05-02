@@ -8,7 +8,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { getPopDaily } from "../utils/api";
+import { getPopDaily, javaTest } from "../utils/api";
 import { lpxToVw } from '../utils/lpx';
 import Loading from './Loading/default.vue';
 
@@ -33,6 +33,9 @@ const loadDailyData = async () => {
   try {
     // 尝试从API获取弹窗数据
     const res = await getPopDaily();
+    // const testRes = await javaTest();
+    // console.log("testRes", testRes);
+    
     const dailyData = res?.data || {};
     if (res?.success) {
       // 使用API返回的数据

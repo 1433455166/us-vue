@@ -9,20 +9,21 @@ const request = {
       url += arr.join("&");
     }
     
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       fetch('lzApi' + url)
         .then((response) => response.json())
         .then((res) => {
           if (res.success) {
             resolve(res);
           } else {
+            reject(res);
             alert(res.msg);
           }
         });
     });
   },
   post(url, data) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       fetch('lzApi' + url, {
         method: "POST",
         body: JSON.stringify({
@@ -36,6 +37,9 @@ const request = {
         .then((res) => {
           if (res.success) {
             resolve(res);
+          } else {
+            reject(res);
+            alert(res?.msg || res?.message || "请求失败");
           }
         });
     });

@@ -22,7 +22,7 @@
         class="chapter-title"
         @click="chapter.id && selectChapter(chapter.id)"
       >
-        {{ chapter.title }}
+        {{ hasChildren ?  `第${chapter.volumeId}卷${chapter.title}`  :  chapter.title  }}
       </span>
 
       <div class="item-meta" v-if="chapter.wordCount">

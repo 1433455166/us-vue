@@ -83,7 +83,7 @@ import Cookies from 'js-cookie';
 import { useRoute } from 'vue-router'
 import { novels } from '../data/novels.js'
 import threeBoby1 from '../data/threeBody/threeBoby1.json'
-import { getNovelData } from "../utils/api";
+import { getNovelData, getNovelList, getNovelChapterContent, getNovelVolume } from "../utils/api";
 
 // 响应式数据
 const loading = ref(true)
@@ -97,8 +97,74 @@ const route = useRoute()
 // 根据路由参数获取小说ID
 const novelId = route.params.id
 
-// 加载数据
-const loadNovelData = async () => {
+// 加载剑来小说数据（使用新的接口）
+const loadUnsheathedNovelData = async () => {
+  loading.value = true
+  error.value = false
+  
+  try {
+    // 1. 获取小说信息
+    novelInfo.value = novels.find(n => n.id === novelId) || novels[0]
+
+    // 2. 获取章节列表
+    const listRes = await getNovelList({ novelName: novelId, folderName: novelInfo.value.folderName });
+    
+    const data = listRes?.data || {};
+    
+    // 处理数据结构，与普通小说保持一致
+    if (listRes?.success && data?.chapters?.length > 0) {
+      // 平铺章节数据
+      chapters.value = data.chapters;
+    } else if (listRes?.success && data?.volume?.length > 0) {
+      // 分卷数据
+      chapters.value = data.volume;
+    } else if (listRes?.success && data?.volumes?.length > 0) {
+      // 分卷数据
+      chapters.value = data.volumes;
+    } else {
+      // 回退到本地JSON数据
+      console.warn('API返回章节列表异常，使用本地数据')
+      chapters.value = threeBoby1.chapters || []
+    }
+    
+    // 3. 设置当前章节并加载内容
+    if (chapters.value.length > 0) {
+      const readerProgress = JSON.parse(Cookies.get('readerProgress') || '{}');
+      const progress = readerProgress[novelId] - 1 || 0;
+      
+      // 使用 chapterData 计算属性来获取平铺的章节数据
+      const flatChapters = chapterData.value;
+      const chapterIndex = Math.max(0, Math.min(progress, flatChapters.length - 1));
+      const targetChapterId = flatChapters[chapterIndex]?.id || 1;
+      
+      // 加载当前章节内容
+      await loadChapterContent(targetChapterId);
+    } else {
+      // 如果没有章节数据，创建空章节
+      currentChapter.value = {
+        id: 1,
+        title: '暂无内容',
+        content: ['本章节内容正在准备中...']
+      }
+    }
+    
+  } catch (err) {
+    console.error('加载剑来小说数据失败:', err)
+    error.value = true
+    
+    // 出错时使用本地数据
+    novelInfo.value = novels.find(n => n.id === 'unsheathed') || novels[0]
+    chapters.value = threeBoby1.chapters || []
+    if (chapters.value.length > 0) {
+      currentChapter.value = chapters.value[0]
+    }
+  } finally {
+    loading.value = false
+  }
+}
+
+// 加载普通小说数据（使用原有接口）
+const loadNormalNovelData = async () => {
   loading.value = true
   error.value = false
   
@@ -155,6 +221,66 @@ const loadNovelData = async () => {
   }
 }
 
+// 加载指定章节的内容
+const loadChapterContent = async (chapterId) => {
+  try {
+    const chapterRes = await getNovelChapterContent({ 
+      novelName: novelId, 
+      folderName: novelInfo.value.folderName, 
+      chapterId: chapterId 
+    });
+    
+    if (chapterRes?.success && chapterRes.data) {
+      // 使用平铺的章节数据来查找章节信息
+      const flatChapters = chapterData.value;
+      const chapterInfo = flatChapters.find(c => c.id === chapterId);
+      
+      if (chapterInfo) {
+        currentChapter.value = {
+          ...chapterInfo,
+          content: Array.isArray(chapterRes.data.content) ? chapterRes.data.content : [chapterRes.data.content]
+        };
+      } else {
+        // 如果章节不在列表中，创建新章节对象
+        currentChapter.value = {
+          id: chapterId,
+          title: chapterRes.data.title || `第${chapterId}章`,
+          content: Array.isArray(chapterRes.data.content) ? chapterRes.data.content : [chapterRes.data.content]
+        };
+      }
+    } else {
+      // API返回异常，使用平铺章节数据中的基本信息
+      const flatChapters = chapterData.value;
+      const chapterInfo = flatChapters.find(c => c.id === chapterId);
+      currentChapter.value = chapterInfo || {
+        id: chapterId,
+        title: `第${chapterId}章`,
+        content: ['本章节内容正在加载中...']
+      };
+    }
+  } catch (err) {
+    console.error('加载章节内容失败:', err);
+    // 使用平铺章节数据中的基本信息
+    const flatChapters = chapterData.value;
+    const chapterInfo = flatChapters.find(c => c.id === chapterId);
+    currentChapter.value = chapterInfo || {
+      id: chapterId,
+      title: `第${chapterId}章`,
+      content: ['加载章节内容失败，请稍后重试...']
+    };
+  }
+}
+
+// 加载数据
+const loadNovelData = async () => {
+  // 针对剑来小说使用新的接口方式
+  if (novelId === 'unsheathed') {
+    await loadUnsheathedNovelData();
+  } else {
+    await loadNormalNovelData();
+  }
+}
+
 // 状态控制
 const showChapterList = ref(false)
 const showSettings = ref(false)
@@ -206,22 +332,40 @@ const chapterData = computed(() => {
 });
 
 // 上一章下一章 - 注意要使用 .value
-const goToChapter = (chapterId) => {
+const goToChapter = async (chapterId) => {
     const data = chapterData.value;
     
     if (!data || data.length === 0) return;
 
-    const index = chapterId - 1;
-    if (index >= 0 && index < data.length) {
-        currentChapter.value = data[index]
-        showChapterList.value = false
-        readingProgress.value = 0
-        setTimeout(() => {
-            if (contentRef.value) {
-                contentRef.value.scrollTop = 0
-            }
-        }, 100)
+    // 找到目标章节在平铺数据中的位置
+    const targetChapter = data.find(c => c.id === chapterId);
+    if (!targetChapter) {
+        // 如果找不到指定章节，尝试找最接近的章节
+        const validIds = data.map(c => c.id).sort((a, b) => a - b);
+        let closestId = chapterId;
+        if (chapterId < validIds[0]) {
+            closestId = validIds[0];
+        } else if (chapterId > validIds[validIds.length - 1]) {
+            closestId = validIds[validIds.length - 1];
+        } else {
+            // 找到最接近的章节ID
+            closestId = validIds.reduce((prev, curr) => 
+                Math.abs(curr - chapterId) < Math.abs(prev - chapterId) ? curr : prev
+            );
+        }
+        await loadChapterContent(closestId);
+    } else {
+        // 加载新章节内容
+        await loadChapterContent(chapterId);
     }
+    
+    showChapterList.value = false
+    readingProgress.value = 0
+    setTimeout(() => {
+        if (contentRef.value) {
+            contentRef.value.scrollTop = 0
+        }
+    }, 100)
 }
 
 const handleTap = () => {
