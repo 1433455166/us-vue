@@ -7,10 +7,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, defineEmits } from 'vue';
 import { getPopDaily, javaTest } from "../utils/api";
 import { lpxToVw } from '../utils/lpx';
 import Loading from './Loading/default.vue';
+
+// 定义事件发射器
+const emit = defineEmits(['close']);
 
 // 响应式数据
 const loading = ref(true)
@@ -33,6 +36,8 @@ const loadDailyData = async () => {
   try {
     // 尝试从API获取弹窗数据
     const res = await getPopDaily();
+    console.log("res", res);
+    
     // const testRes = await javaTest();
     // console.log("testRes", testRes);
     
@@ -51,10 +56,14 @@ const loadDailyData = async () => {
     } else {
       // 回退到本地JSON数据
       console.warn('API返回数据异常')
+      // 接口失败，触发关闭事件
+      emit('close');
     }
   } catch (err) {
-    console.error('加载数据失败:', err)
-    error.value = true
+    console.error('加载数据失败:', err);
+    error.value = true;
+    // 接口失败，触发关闭事件
+    emit('close');
   } finally {
     loading.value = false
   }

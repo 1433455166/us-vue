@@ -16,12 +16,13 @@
     </main>
     <BaseModal
         v-model="showModal"
+        ref="baseModalRef"
         title="基础提示"
         :animation="true"
         animation-type="zoom"
         @confirm="handleConfirm"
     >
-        <DailyPop />
+        <DailyPop @close="handleDailyPopClose" />
     </BaseModal>
   </div>
 </template>
@@ -39,10 +40,19 @@ const cards = ref([
 ])
 
 const showModal = ref(true);
+const baseModalRef = ref(null);
 
 const handleConfirm = () => {
     showModal.value = false;
     console.log('确认操作');
+}
+
+const handleDailyPopClose = () => {
+    // 使用 BaseModal 实例的 close 方法来正确关闭弹窗
+    if (baseModalRef.value) {
+        baseModalRef.value.close();
+    }
+    console.log('DailyPop 接口失败，关闭弹窗');
 }
 </script>
 
