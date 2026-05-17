@@ -386,9 +386,9 @@ const handleTap = () => {
   showControls.value = !showControls.value
   if (showTapHint.value) {
     showTapHint.value = false
-    setTimeout(() => {
-      showTapHint.value = true
-    }, 3000)
+    // setTimeout(() => {
+    //   showTapHint.value = true
+    // }, 3000)
   }
 }
 
