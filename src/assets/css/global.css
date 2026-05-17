@@ -1,8 +1,4 @@
 @font-face {
-  font-family: 'NotoSerifSC-Medium'; /* 思源宋体 Medium */
-  src: url('../../assets/fonts/NotoSerifSC-Medium.ttf');
-}
-@font-face {
   font-family: 'LongCang'; /* 龙苍 */
   src: url('../../assets/fonts/LongCang-Regular.ttf');
 }

@@ -44,7 +44,6 @@
             <option value="system-ui">系统字体</option>
             <option value="MaShanZheng">马山郑</option>
             <option value="LongCang">龙藏</option>
-            <option value="NotoSerifSC-Medium">思源宋体 Medium</option>
           </select>
         </div>
         
