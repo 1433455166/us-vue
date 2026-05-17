@@ -37,6 +37,18 @@ const routes = [
         component: () => import("../views/reader.vue"),
     },
     {
+        path: '/music',
+        name: 'music',
+        component: () => import("../views/music.vue"),
+        beforeEnter: passwordGuard,
+    },
+    {
+        path: '/musicList',
+        name: 'musicList',
+        component: () => import("../views/musicList.vue"),
+        beforeEnter: passwordGuard,
+    },
+    {
         path: '/test',
         name: 'test',
         component: () => import("../views/test.vue"),

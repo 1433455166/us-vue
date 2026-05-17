@@ -9,4 +9,5 @@ export enum DEVICE_TYPE{
 export enum ROUTER_TYPE {
   bookList = 'bookList', // 小说列表
   declaration = 'declaration', // 网站声明
+  musicList = 'musicList', // 音乐列表
 };

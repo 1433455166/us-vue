@@ -42,6 +42,7 @@ import BaseModal from '../components/Modal/BaseModal.vue';
 const cards = ref([
   { title: '弹窗测试', content: '点击弹出一个测试弹窗, 已弃用' },
   { title: '小说', content: '点击跳转小说页面', router: ROUTER_TYPE.bookList },
+  { title: '音乐列表', content: '点击跳转音乐列表页面', router: ROUTER_TYPE.musicList },
   { title: '网站声明', content: '点击跳转网站声明页面', router: ROUTER_TYPE.declaration },
   { title: '卡片3', content: '卡片3 内容' },
 ])
