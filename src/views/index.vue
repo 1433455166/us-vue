@@ -32,7 +32,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { CARD_TYPE } from '../common/enum'
+import { ROUTER_TYPE } from '../common/enum'
 import { getPopDailyV2 } from '../utils/api'
 import DeviceCard from '../components/DeviceCard.vue'
 import DailyPop from '../components/DailyPop.vue'
@@ -41,7 +41,8 @@ import BaseModal from '../components/Modal/BaseModal.vue';
 // 卡片数据
 const cards = ref([
   { title: '弹窗测试', content: '点击弹出一个测试弹窗, 已弃用' },
-  { title: '小说', content: '点击跳转小说页面', type: CARD_TYPE.novel },
+  { title: '小说', content: '点击跳转小说页面', router: ROUTER_TYPE.bookList },
+  { title: '网站声明', content: '点击跳转网站声明页面', router: ROUTER_TYPE.declaration },
   { title: '卡片3', content: '卡片3 内容' },
 ])
 
@@ -96,8 +97,8 @@ onUnmounted(() => {
 })
 
 const handleCardClick = (data) => {
-  if (data?.type === CARD_TYPE.novel) {
-    router.push('/bookList')
+  if (data?.router) {
+    router.push(`/${data?.router}`)
   }
 }
 

@@ -5,7 +5,8 @@ export enum DEVICE_TYPE{
   desktop = 'desktop', // 桌面
 };
 
-// 卡片类型
-export enum CARD_TYPE{
-  novel = 'novel', // 小说
+// 路由类型
+export enum ROUTER_TYPE {
+  bookList = 'bookList', // 小说列表
+  declaration = 'declaration', // 网站声明
 };

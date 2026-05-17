@@ -2,6 +2,7 @@
   <div class="home-container">
     <!-- 顶部导航 -->
     <header class="home-header">
+        <BackButton />
         <p>小说列表</p>
     </header>
     
@@ -49,6 +50,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import BookCard from '../components/novel/BookCard.vue'
+import BackButton from '../components/BackButton.vue'
 import { novels } from '../data/novels.js'
 
 const router = useRouter()
@@ -161,51 +163,17 @@ onUnmounted(() => {
   top: 0;
   z-index: 100;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-}
-
-.header-content {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 0 20px;
-  margin-bottom: 20px;
+  justify-content: center;
+  position: relative;
 }
 
-.logo h1 {
+.home-header p {
   margin: 0;
   font-size: 24px;
   font-weight: bold;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.logo p {
-  margin: 4px 0 0;
-  font-size: 14px;
-  opacity: 0.9;
-}
-
-.user-actions {
-  display: flex;
-  gap: 15px;
-}
-
-.btn-icon {
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: white;
-  transition: all 0.3s;
-}
-
-.btn-icon:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: translateY(-2px);
 }
 
 /* 主内容 */
