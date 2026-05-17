@@ -288,14 +288,28 @@ const showControls = ref(true)
 const showTapHint = ref(true)
 const isNightMode = ref(false)
 
+// 从cookie中读取阅读设置或使用默认值
+const getInitialReaderSettings = () => {
+  const savedSettings = Cookies.get('readerSettings')
+  if (savedSettings) {
+    try {
+      return JSON.parse(savedSettings)
+    } catch (e) {
+      console.warn('Failed to parse reader settings from cookie, using defaults')
+    }
+  }
+  // 默认设置
+  return {
+    fontSize: 16,
+    lineHeight: 1.8,
+    fontFamily: 'system-ui',
+    theme: 'light',
+    brightness: 100
+  }
+}
+
 // 阅读设置
-const readerSettings = ref({
-  fontSize: 16,
-  lineHeight: 1.8,
-  fontFamily: 'system-ui',
-  theme: 'light',
-  brightness: 100
-})
+const readerSettings = ref(getInitialReaderSettings())
 
 // 阅读进度
 const readingProgress = ref(0)

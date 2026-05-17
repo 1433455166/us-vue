@@ -12,7 +12,7 @@
           <label>字体大小</label>
           <div class="setting-controls">
             <button class="size-btn" @click="updateFontSize(-1)">A-</button>
-            <span class="size-value">{{ settings.fontSize }}</span>
+            <span class="size-value">{{ localSettings.fontSize }}</span>
             <button class="size-btn" @click="updateFontSize(1)">A+</button>
           </div>
         </div>
@@ -69,7 +69,8 @@
   </div>
 </template>
 <script setup>
-import { ref, reactive, watch } from 'vue'
+import { ref, reactive, watch, onMounted } from 'vue'
+import Cookies from 'js-cookie'
 
 const props = defineProps({
   settings: Object
@@ -77,13 +78,36 @@ const props = defineProps({
 
 const emit = defineEmits(['update-settings', 'close'])
 
-const localSettings = reactive({ ...props.settings })
+// 从cookie中读取设置或使用默认值
+const getDefaultSettings = () => {
+  const savedSettings = Cookies.get('readerSettings')
+  if (savedSettings) {
+    try {
+      return JSON.parse(savedSettings)
+    } catch (e) {
+      console.warn('Failed to parse reader settings from cookie, using defaults')
+    }
+  }
+  // 返回传入的默认设置
+  return { ...props.settings }
+}
+
+const localSettings = reactive(getDefaultSettings())
 
 const themes = [
   { id: 'light', name: '白天', bg: '#f8f5f0' },
   { id: 'dark', name: '夜间', bg: '#1a1a1a' },
   { id: 'sepia', name: '护眼', bg: '#f4ecd8' }
 ]
+
+// 保存设置到cookie
+const saveSettingsToCookie = (settings) => {
+  try {
+    Cookies.set('readerSettings', JSON.stringify(settings), { expires: 365 })
+  } catch (e) {
+    console.error('Failed to save reader settings to cookie:', e)
+  }
+}
 
 const updateFontSize = (delta) => {
   localSettings.fontSize = Math.max(12, Math.min(30, localSettings.fontSize + delta))
@@ -96,15 +120,30 @@ const selectTheme = (themeId) => {
 }
 
 const updateSettings = () => {
+  // 保存到cookie
+  saveSettingsToCookie({ ...localSettings })
+  // 发送更新事件
   emit('update-settings', { ...localSettings })
 }
 
-// 监听props变化
+// 监听props变化（当外部设置发生变化时）
 watch(() => props.settings, (newSettings) => {
-    console.log('localSettings', JSON.parse(JSON.stringify(localSettings)), JSON.parse(JSON.stringify(newSettings)));
-    
-  Object.assign(localSettings, newSettings)
+  // 只有当本地设置与新设置不同时才更新（避免覆盖用户在面板中的更改）
+  const hasDifferentSetting = Object.keys(newSettings).some(key => 
+    localSettings[key] !== newSettings[key]
+  )
+  
+  if (hasDifferentSetting) {
+    Object.assign(localSettings, newSettings)
+    // 保存到cookie以确保一致性
+    saveSettingsToCookie({ ...localSettings })
+  }
 }, { deep: true })
+
+// 组件挂载时确保设置已保存到cookie
+onMounted(() => {
+  saveSettingsToCookie({ ...localSettings })
+})
 </script>
 <style scoped>
 .settings-overlay {

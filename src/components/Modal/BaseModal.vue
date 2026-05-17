@@ -406,14 +406,14 @@ defineExpose({
 
 .btn-confirm {
   border: none;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
+  background: linear-gradient(135deg, #ffffff 0%, #ffd700 50%, #4a90e2 100%);
+  color: #333;
 }
 
 .btn-confirm:hover {
   opacity: 0.9;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
 }
 
 /* ========== 动画效果 ========== */

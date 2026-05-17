@@ -6,4 +6,4 @@ export const address = {
 };
 
 // 访问密码 yourSecretPassword
-export const accessPassword = 'lzPassword';
+export const accessPassword = 'LZ1234cc';

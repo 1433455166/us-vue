@@ -24,7 +24,7 @@
         animation-type="zoom"
         @confirm="handleConfirm"
     >
-        <DailyPop v-if="showModal" />
+        <DailyPop v-if="showModal" :daily-data="dailyPopData" />
     </BaseModal>
   </div>
 </template>
@@ -49,6 +49,23 @@ const cards = ref([
 const showModal = ref(false);
 const baseModalRef = ref(null);
 const router = useRouter();
+const dailyPopData = ref({
+  title: '提高情商的八个口诀',
+  data: [
+    '1.经常夸人',
+    '2.不要轻易说出自己的秘密',
+    '3.不要在背后议论任何人',
+    '4.当你愤怒时忍住最伤人的那句话',
+    '5.别人自嘲可以，但你千万别去附和',
+    '6.别人骂你要听别人，夸你别信',
+    '7.和别人聊天时不要打断别人，学会倾听',
+    '8.如果遇到了傻子，不要和他争论，同意他的所有观点'
+  ],
+  style: {
+    fontSize: 24,
+    lineHeight: 1.6
+  }
+});
 
 // 时钟相关
 const currentTime = ref('')
@@ -73,6 +90,7 @@ const checkAndShowDailyPop = async () => {
       const hasShownToday = res.data.hasShownToday;
       // 只有当今日未显示过时才打开弹窗
       if (!hasShownToday) {
+        dailyPopData.value = res.data.dailyData; // 保存弹窗数据
         showModal.value = true;
       }
     }

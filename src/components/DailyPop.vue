@@ -7,10 +7,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { getPopDailyV2 } from "../utils/api";
+import { ref, onMounted, watch } from 'vue';
 import { lpxToVw } from '../utils/lpx';
 import Loading from './Loading/default.vue';
+
+// 接收弹窗数据作为prop
+const props = defineProps({
+  dailyData: Object
+})
 
 // 响应式数据
 const loading = ref(true)
@@ -21,44 +25,30 @@ const contentStyle = ref({
   lineHeight: 1.6,
 })
 
-// 加载数据
-const loadDailyData = async () => {
-  loading.value = true
-
-  try {
-    // 调用新的 pop.daily.v2 接口
-    const res = await getPopDailyV2();
-    console.log("pop.daily.v2 response", res);
-    
-    if (res?.success && res?.data) {
-      const dailyData = res.data.dailyData;
-      
-      if (dailyData) {
-        // 使用API返回的数据
-        title.value = dailyData.title || '';
-        list.value = dailyData.data || [];
-        if (dailyData.style) {
-          contentStyle.value = {
-            ...contentStyle.value,
-            ...dailyData.style,
-            fontSize: lpxToVw(dailyData.style.fontSize) || lpxToVw(contentStyle.value.fontSize),
-            lineHeight: dailyData.style.lineHeight || contentStyle.value.lineHeight
-          };
-        }
-        console.log('dailyData', dailyData);
-      }
+// 处理传入的数据
+const processDailyData = (data) => {
+  if (data) {
+    title.value = data.title || '';
+    list.value = data.data || [];
+    if (data.style) {
+      contentStyle.value = {
+        ...contentStyle.value,
+        ...data.style,
+        fontSize: lpxToVw(data.style.fontSize) || lpxToVw(contentStyle.value.fontSize),
+        lineHeight: data.style.lineHeight || contentStyle.value.lineHeight
+      };
     }
-  } catch (err) {
-    console.error('加载数据失败:', err);
-  } finally {
-    loading.value = false
+    console.log('dailyData', data);
   }
+  loading.value = false
 }
 
-// 生命周期
-onMounted(() => {
-    loadDailyData() // 页面加载时获取数据
-})
+// 监听props变化
+watch(() => props.dailyData, (newData) => {
+  if (newData) {
+    processDailyData(newData)
+  }
+}, { immediate: true })
 </script>
 
 <style scoped>
