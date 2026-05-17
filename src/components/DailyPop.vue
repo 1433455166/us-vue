@@ -7,18 +7,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted, defineEmits } from 'vue';
-import { getPopDaily, javaTest } from "../utils/api";
+import { ref, onMounted } from 'vue';
+import { getPopDailyV2 } from "../utils/api";
 import { lpxToVw } from '../utils/lpx';
 import Loading from './Loading/default.vue';
 
-// 定义事件发射器
-const emit = defineEmits(['close']);
-
 // 响应式数据
 const loading = ref(true)
-const error = ref(false)
-const title = ref(null)
+const title = ref('')
 const list = ref([])
 const contentStyle = ref({
   fontSize: lpxToVw(24),
@@ -28,42 +24,32 @@ const contentStyle = ref({
 // 加载数据
 const loadDailyData = async () => {
   loading.value = true
-  error.value = false
 
-  // 0 - 2 随机取值
-  const randomNumber = Math.ceil(Math.random() * 3 - 1)
-  
   try {
-    // 尝试从API获取弹窗数据
-    const res = await getPopDaily();
-    console.log("res", res);
+    // 调用新的 pop.daily.v2 接口
+    const res = await getPopDailyV2();
+    console.log("pop.daily.v2 response", res);
     
-    // const testRes = await javaTest();
-    // console.log("testRes", testRes);
-    
-    const dailyData = res?.data || {};
-    if (res?.success) {
-      // 使用API返回的数据
-      const dailyItem = dailyData.list[randomNumber] || {};
-      title.value = dailyItem.title
-      list.value = dailyItem.data
-      contentStyle.value = {
-        ...contentStyle.value,
-        ...dailyItem.style,
-        fontSize: lpxToVw(dailyItem.style.fontSize) || lpxToVw(contentStyle.value.fontSize)
+    if (res?.success && res?.data) {
+      const dailyData = res.data.dailyData;
+      
+      if (dailyData) {
+        // 使用API返回的数据
+        title.value = dailyData.title || '';
+        list.value = dailyData.data || [];
+        if (dailyData.style) {
+          contentStyle.value = {
+            ...contentStyle.value,
+            ...dailyData.style,
+            fontSize: lpxToVw(dailyData.style.fontSize) || lpxToVw(contentStyle.value.fontSize),
+            lineHeight: dailyData.style.lineHeight || contentStyle.value.lineHeight
+          };
+        }
+        console.log('dailyData', dailyData);
       }
-      console.log('dailyItem', dailyItem);
-    } else {
-      // 回退到本地JSON数据
-      console.warn('API返回数据异常')
-      // 接口失败，触发关闭事件
-      emit('close');
     }
   } catch (err) {
     console.error('加载数据失败:', err);
-    error.value = true;
-    // 接口失败，触发关闭事件
-    emit('close');
   } finally {
     loading.value = false
   }

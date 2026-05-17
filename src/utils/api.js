@@ -13,6 +13,7 @@ export const getNovelVolume = (params) => request.post("/lz-api/getNovelVolume",
 
 // 获取 每日弹窗 数据
 export const getPopDaily = () => request.get("/lz-api/pop.daily");
+export const getPopDailyV2 = () => request.get("/lz-api/pop.daily.v2");
 
 // java 接口测试
 // export const javaTest = () => request.get("/api/db-test/connection");

@@ -1,5 +1,5 @@
 <template>
-  <div class="card">
+  <div class="card" @click="handleClick">
     <h3 class="card-title">{{ title }}</h3>
     <p class="card-content">{{ content }}</p>
   </div>
@@ -10,6 +10,12 @@ defineProps({
   title: String,
   content: String
 })
+
+const emit = defineEmits(['click'])
+
+const handleClick = () => {
+  emit('click')
+}
 </script>
 
 <style scoped>
@@ -21,6 +27,7 @@ defineProps({
   width: 100%;
   max-width: 320px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
 }
 
 .card:hover {

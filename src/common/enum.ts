@@ -4,3 +4,8 @@ export enum DEVICE_TYPE{
   tablet = 'tablet', // 平板
   desktop = 'desktop', // 桌面
 };
+
+// 卡片类型
+export enum CARD_TYPE{
+  novel = 'novel', // 小说
+};
