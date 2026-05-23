@@ -26,6 +26,7 @@ const handleClick = () => {
   padding: 1.5rem;
   width: 100%;
   max-width: 320px;
+  scroll-snap-align: start;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   cursor: pointer;
 }

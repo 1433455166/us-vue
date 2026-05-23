@@ -1,6 +1,6 @@
 <template>
   <div class="app">
-    <header class='header'>
+    <header ref="headerRef" class='header'>
         <div class="width-300">
             <h1>这是一个 vue 项目</h1>
             <div class="clock">{{ currentTime }}</div>
@@ -101,17 +101,33 @@ const checkAndShowDailyPop = async () => {
   }
 }
 
+// 新增：获取 header 高度
+const headerRef = ref(null)
+const headerHeight = ref(0)
+
 onMounted(() => {
   updateTime()
   timer = setInterval(updateTime, 1000)
   
   // 检查并决定是否显示弹窗
   checkAndShowDailyPop()
-})
-
-onUnmounted(() => {
-  if (timer) {
-    clearInterval(timer)
+  
+  // 获取 header 实际高度并设置 CSS 变量
+  if (headerRef.value) {
+    // 使用 clientHeight 包含 padding 但不包含 border
+    // 或使用 offsetHeight 包含 padding 和 border
+    const computedStyle = window.getComputedStyle(headerRef.value)
+    const height = headerRef.value.clientHeight + 
+                   parseFloat(computedStyle.paddingTop) + 
+                   parseFloat(computedStyle.paddingBottom)
+    
+    // console.log('Header clientHeight:', headerRef.value.clientHeight)
+    // console.log('Header paddingTop:', parseFloat(computedStyle.paddingTop))
+    // console.log('Header paddingBottom:', parseFloat(computedStyle.paddingBottom))
+    // console.log('Header calculated height:', height)
+    
+    headerHeight.value = height
+    document.documentElement.style.setProperty('--header-height', `${headerHeight.value}px`)
   }
 })
 
@@ -146,6 +162,8 @@ const handleConfirm = () => {
   display: flex;
   justify-content: center;
   align-items: center;
+  /* 确保没有 transform 干扰 */
+  transform: none;
 }
 
 .header h1 {
@@ -168,10 +186,17 @@ const handleConfirm = () => {
 
 .main-content {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
   gap: 1.5rem;
   padding: 1rem;
   margin: 0 auto;
+  max-height: calc(100vh - var(--header-height));
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: #6a11cb #f0f0f0;
+  max-width: 800px;
 }
 </style>
