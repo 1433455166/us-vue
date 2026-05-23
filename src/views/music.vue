@@ -1,12 +1,15 @@
 <template>
   <div class="music-container">
-    <BackButton />
-    <h1 class="page-title">音乐播放器</h1>
-    <MusicPlayer 
-      :playlist="playlist" 
-      @song-change="handleSongChange"
-      @play-end="handlePlayEnd"
-    />
+    <PasswordGuard v-if="!isAuthenticated" @success="handleAuthSuccess" />
+    <template v-else>
+      <BackButton />
+      <h1 class="page-title">音乐播放器</h1>
+      <MusicPlayer 
+        :playlist="playlist" 
+        @song-change="handleSongChange"
+        @play-end="handlePlayEnd"
+      />
+    </template>
   </div>
 </template>
 
@@ -14,6 +17,17 @@
 import { ref, onMounted } from 'vue'
 import BackButton from '../components/BackButton.vue'
 import MusicPlayer from '../components/MusicPlayer.vue'
+import PasswordGuard from '../components/PasswordGuard.vue'
+import Cookies from 'js-cookie'
+import { accessPassword } from '../common/const'
+
+// 认证状态
+const isAuthenticated = ref(false)
+
+// 处理认证成功
+const handleAuthSuccess = () => {
+  isAuthenticated.value = true
+}
 
 // 播放列表数据
 const playlist = ref([
@@ -36,6 +50,12 @@ const handlePlayEnd = () => {
 
 // 页面加载时的初始化
 onMounted(() => {
+  // 检查cookie中是否有有效的访问密码
+  const storedPassword = Cookies.get('accessPassword')
+  if (storedPassword && storedPassword === accessPassword) {
+    isAuthenticated.value = true
+  }
+  
   // 可以在这里添加额外的初始化逻辑
   console.log('音乐播放器已加载')
 })

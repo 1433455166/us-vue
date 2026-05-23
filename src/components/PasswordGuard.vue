@@ -59,6 +59,7 @@ const checkPassword = () => {
     padding: 30px;
     max-width: 400px;
     width: 100%;
+    margin-top: 49vw;
     z-index: 1000;
     position: relative;
 }

@@ -1,49 +1,52 @@
 <template>
   <div class="home-container">
-    <!-- 顶部导航 -->
-    <header class="home-header">
-        <BackButton />
-        <p>小说列表</p>
-    </header>
-    
-    <!-- 主内容 -->
-    <main class="home-main" ref="contentRef">
-      <!-- 推荐区域 -->
-      <section v-if="activeCategory === 'all'" class="recommend-section">
-        <div class="recommend-list">
-          <BookCard 
-            v-for="novel in novels"
-            :key="novel.id"
-            :novel="novel"
-            :view-mode="viewMode"
-            @click="goToReader(novel.id)"
-          />
-        </div>
-      </section>
+    <PasswordGuard v-if="!isAuthenticated" @success="handleAuthSuccess" />
+    <template v-else>
+      <!-- 顶部导航 -->
+      <header class="home-header">
+          <BackButton />
+          <p>小说列表</p>
+      </header>
       
-      <!-- 小说列表 -->
-      <section class="novel-list-section">
-        <!-- 空状态 -->
-        <div v-if="filteredNovels.length === 0" class="empty-state">
-          <svg viewBox="0 0 24 24" width="64" height="64">
-            <path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-5 3c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm4 8h-8v-1c0-1.33 2.67-2 4-2s4 .67 4 2v1z" fill="currentColor"/>
-          </svg>
-          <p>暂无相关小说</p>
-          <button class="btn-primary" @click="resetFilters">重置筛选</button>
-        </div>
-      </section>
-    </main>
-    
-    <!-- 回到顶部 -->
-    <button 
-      v-show="showBackToTop"
-      class="back-to-top"
-      @click="scrollToTop"
-    >
-      <svg viewBox="0 0 24 24" width="20" height="20">
-        <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z" fill="currentColor"/>
-      </svg>
-    </button>
+      <!-- 主内容 -->
+      <main class="home-main" ref="contentRef">
+        <!-- 推荐区域 -->
+        <section v-if="activeCategory === 'all'" class="recommend-section">
+          <div class="recommend-list">
+            <BookCard 
+              v-for="novel in novels"
+              :key="novel.id"
+              :novel="novel"
+              :view-mode="viewMode"
+              @click="goToReader(novel.id)"
+            />
+          </div>
+        </section>
+        
+        <!-- 小说列表 -->
+        <section class="novel-list-section">
+          <!-- 空状态 -->
+          <div v-if="filteredNovels.length === 0" class="empty-state">
+            <svg viewBox="0 0 24 24" width="64" height="64">
+              <path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-5 3c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm4 8h-8v-1c0-1.33 2.67-2 4-2s4 .67 4 2v1z" fill="currentColor"/>
+            </svg>
+            <p>暂无相关小说</p>
+            <button class="btn-primary" @click="resetFilters">重置筛选</button>
+          </div>
+        </section>
+      </main>
+      
+      <!-- 回到顶部 -->
+      <button 
+        v-show="showBackToTop"
+        class="back-to-top"
+        @click="scrollToTop"
+      >
+        <svg viewBox="0 0 24 24" width="20" height="20">
+          <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z" fill="currentColor"/>
+        </svg>
+      </button>
+    </template>
   </div>
 </template>
 <script setup>
@@ -51,9 +54,20 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import BookCard from '../components/novel/BookCard.vue'
 import BackButton from '../components/BackButton.vue'
+import PasswordGuard from '../components/PasswordGuard.vue'
 import { novels } from '../data/novels.js'
+import Cookies from 'js-cookie'
+import { accessPassword } from '../common/const'
 
 const router = useRouter()
+
+// 认证状态
+const isAuthenticated = ref(false)
+
+// 处理认证成功
+const handleAuthSuccess = () => {
+  isAuthenticated.value = true
+}
 
 // 状态管理
 const contentRef = ref(null)
@@ -134,6 +148,12 @@ const handleScroll = () => {
 
 // 生命周期
 onMounted(() => {
+    // 检查cookie中是否有有效的访问密码
+    const storedPassword = Cookies.get('accessPassword')
+    if (storedPassword && storedPassword === accessPassword) {
+      isAuthenticated.value = true
+    }
+    
     if (contentRef.value) {
         contentRef.value.addEventListener('scroll', handleScroll, { passive: true })
     }

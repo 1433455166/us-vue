@@ -1,18 +1,32 @@
 <template>
   <div class="music-list-page">
-    <BackButton />
-    <MusicList 
-      :music-list="musicList" 
-      @play-song="handlePlaySong"
-    />
+    <PasswordGuard v-if="!isAuthenticated" @success="handleAuthSuccess" />
+    <template v-else>
+      <BackButton />
+      <MusicList 
+        :music-list="musicList" 
+        @play-song="handlePlaySong"
+      />
+    </template>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import BackButton from '../components/BackButton.vue'
 import MusicList from '../components/MusicList.vue'
+import PasswordGuard from '../components/PasswordGuard.vue'
+import Cookies from 'js-cookie'
+import { accessPassword } from '../common/const'
+
+// 认证状态
+const isAuthenticated = ref(false)
+
+// 处理认证成功
+const handleAuthSuccess = () => {
+  isAuthenticated.value = true
+}
 
 // 音乐列表数据 - 目前只有一个音乐文件，但结构支持扩展
 const musicList = ref([
@@ -35,6 +49,14 @@ const handlePlaySong = (song) => {
   // 后续可以扩展为传递歌曲ID或信息
   router.push('/music')
 }
+
+// 页面加载时检查cookie
+onMounted(() => {
+  const storedPassword = Cookies.get('accessPassword')
+  if (storedPassword && storedPassword === accessPassword) {
+    isAuthenticated.value = true
+  }
+})
 </script>
 
 <style scoped>

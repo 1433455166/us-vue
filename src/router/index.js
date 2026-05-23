@@ -1,5 +1,4 @@
 import { createRouter, createWebHashHistory } from "vue-router";
-import { passwordGuard } from './guards';
 
 const routes = [
     {
@@ -13,18 +12,15 @@ const routes = [
     {
         path: "/love",
         component: () => import("../views/love.vue"),
-        beforeEnter: passwordGuard,
     },
     {
         path: "/novel",
         component: () => import("../views/novel.vue"),
-        beforeEnter: passwordGuard,
     },
     {
         path: '/bookList',
         name: 'bookList',
         component: () => import("../views/noveList.vue"),
-        beforeEnter: passwordGuard,
     },
     {
         path: '/reader/:id',
@@ -40,13 +36,11 @@ const routes = [
         path: '/music',
         name: 'music',
         component: () => import("../views/music.vue"),
-        beforeEnter: passwordGuard,
     },
     {
         path: '/musicList',
         name: 'musicList',
         component: () => import("../views/musicList.vue"),
-        beforeEnter: passwordGuard,
     },
     {
         path: '/test',

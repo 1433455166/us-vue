@@ -1,27 +1,36 @@
 <template>
   <div class="app">
-    <header class='header'>
-        <div class="width-300">
-            <h1>小说</h1>
-        </div>
-    </header>
+    <PasswordGuard v-if="!isAuthenticated" @success="handleAuthSuccess" />
+    <template v-else>
+      <header class='header'>
+          <div class="width-300">
+              <h1>小说</h1>
+          </div>
+      </header>
 
-    <main class="main-content">
-      <NovelCard
-        v-for="(item, index) in cards"
-        :key="index"
-        :title="item.title"
-        :content="item.content"
-        :bgImage="item.bgImage"
-      />
-    </main>
+      <main class="main-content">
+        <NovelCard
+          v-for="(item, index) in cards"
+          :key="index"
+          :title="item.title"
+          :content="item.content"
+          :bgImage="item.bgImage"
+        />
+      </main>
+    </template>
   </div>
 </template>
 
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import NovelCard from '../components/NovelCard.vue'
+import PasswordGuard from '../components/PasswordGuard.vue'
+import Cookies from 'js-cookie'
+import { accessPassword } from '../common/const'
+
+// 认证状态
+const isAuthenticated = ref(false)
 
 // 卡片数据
 // 个人喜爱的小说，个人阅读用，侵权联系删除
@@ -31,6 +40,19 @@ const cards = ref([
   { title: '卡片3' },
   { title: '卡片4' },
 ])
+
+// 处理认证成功
+const handleAuthSuccess = () => {
+  isAuthenticated.value = true
+}
+
+// 页面加载时检查cookie
+onMounted(() => {
+  const storedPassword = Cookies.get('accessPassword')
+  if (storedPassword && storedPassword === accessPassword) {
+    isAuthenticated.value = true
+  }
+})
 </script>
 
 <style scoped>
