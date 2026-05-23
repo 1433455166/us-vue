@@ -52,10 +52,7 @@ const playSong = (song) => {
 .music-list-container {
   width: 100%;
   max-width: 600px;
-  background: white;
-  border-radius: 16px;
   padding: 20px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .list-header {

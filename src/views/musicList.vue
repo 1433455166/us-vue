@@ -73,7 +73,7 @@ onMounted(() => {
 /* 响应式设计 */
 @media (max-width: 768px) {
   .music-list-page {
-    padding: 10px;
+    padding: 0;
   }
 }
 </style>

@@ -52,16 +52,19 @@ const checkPassword = () => {
 
 <style scoped>
 .password-guard {
-    display: flex;
+display: flex;
     flex-direction: column;
     align-items: center;
     gap: 20px;
     padding: 30px;
-    /* max-width: 400px; */
+    padding-top: 12vw;
     width: 100%;
-    margin-top: 49vw;
     z-index: 1000;
-    position: relative;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    height: 100Vh;
 }
 
 .password-guard-h2 {
@@ -131,5 +134,12 @@ const checkPassword = () => {
     gap: 10px;
     width: 100%;
     justify-content: center;
+}
+
+/* 手机端 */
+@media (max-width: 767px) {
+    .password-guard {
+        padding-top: 49vw;
+    }
 }
 </style>
