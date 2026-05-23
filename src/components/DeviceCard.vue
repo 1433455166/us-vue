@@ -50,6 +50,7 @@ const handleClick = () => {
 }
 
 /* 响应式布局 */
+/* 手机端 */
 @media (max-width: 767px) {
   .card {
     max-width: 100%;
@@ -57,15 +58,20 @@ const handleClick = () => {
   }
 }
 
+/* 平板端 */
 @media (min-width: 768px) and (max-width: 1023px) {
   .card {
     max-width: 40%;
   }
 }
 
-@media (min-width: 1024px) {
-  .card {
-    max-width: 22%;
-  }
+/* 大屏幕电脑 */
+@media (min-width: 1024px) and (max-width: 1439px) {
+  /* .card { max-width: 22%; } */
+}
+
+/* 超大屏幕 */
+@media (min-width: 1440px) {
+  /* .card { max-width: 18%; } */
 }
 </style>

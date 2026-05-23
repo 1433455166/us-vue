@@ -199,4 +199,12 @@ const handleConfirm = () => {
   scrollbar-color: #6a11cb #f0f0f0;
   max-width: 800px;
 }
+
+/* 桌面端布局 */
+@media (min-width: 1024px) {
+  .main-content {
+    flex-wrap: wrap;
+    max-width: 1111px;
+  }
+}
 </style>
