@@ -6,6 +6,7 @@
       <h1 class="page-title">音乐播放器</h1>
       <MusicPlayer 
         :playlist="playlist" 
+        :current-song-index="currentSongIndex"
         @song-change="handleSongChange"
         @play-end="handlePlayEnd"
       />
@@ -14,39 +15,53 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import BackButton from '../components/BackButton.vue'
 import MusicPlayer from '../components/MusicPlayer.vue'
 import PasswordGuard from '../components/PasswordGuard.vue'
 import Cookies from 'js-cookie'
 import { accessPassword } from '../common/const'
+import musicListData from '../data/musicList.json'
 
 // 认证状态
 const isAuthenticated = ref(false)
+
+// 路由
+const route = useRoute()
 
 // 处理认证成功
 const handleAuthSuccess = () => {
   isAuthenticated.value = true
 }
 
-// 播放列表数据
-const playlist = ref([
-  {
-    title: '本草纲目',
-    artist: '周杰伦',
-    src: '/mp3/本草纲目-周杰伦.mp3'
-  }
-])
+// 播放列表数据 - 从 JSON 文件导入
+const playlist = ref(musicListData)
+
+// 当前播放索引
+const currentSongIndex = ref(0)
 
 // 处理歌曲切换
 const handleSongChange = (song, index) => {
   console.log('当前播放:', song.title, '索引:', index)
+  currentSongIndex.value = index
 }
 
 // 处理播放结束
 const handlePlayEnd = () => {
   console.log('播放结束')
 }
+
+// 监听路由参数变化
+watch(() => route.query.songId, (newSongId) => {
+  if (newSongId && playlist.value && playlist.value.length > 0) {
+    const index = playlist.value.findIndex(song => song.id === parseInt(newSongId))
+    if (index !== -1) {
+      currentSongIndex.value = index
+      console.log('设置当前播放歌曲索引:', index)
+    }
+  }
+}, { immediate: true })
 
 // 页面加载时的初始化
 onMounted(() => {
@@ -59,6 +74,7 @@ onMounted(() => {
   // 可以在这里添加额外的初始化逻辑
   console.log('音乐播放器已加载')
 })
+
 </script>
 
 <style scoped>

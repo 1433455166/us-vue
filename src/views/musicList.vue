@@ -19,6 +19,7 @@ import MusicList from '../components/MusicList.vue'
 import PasswordGuard from '../components/PasswordGuard.vue'
 import Cookies from 'js-cookie'
 import { accessPassword } from '../common/const'
+import musicListData from '../data/musicList.json'
 
 // 认证状态
 const isAuthenticated = ref(false)
@@ -28,26 +29,16 @@ const handleAuthSuccess = () => {
   isAuthenticated.value = true
 }
 
-// 音乐列表数据 - 目前只有一个音乐文件，但结构支持扩展
-const musicList = ref([
-  {
-    id: 1,
-    title: '本草纲目',
-    artist: '周杰伦',
-    src: '/mp3/本草纲目-周杰伦.mp3',
-    duration: '4:20' // 可选：歌曲时长
-  }
-])
+// 音乐列表数据 - 从 JSON 文件导入
+const musicList = ref(musicListData)
 
 const router = useRouter()
 
 // 处理播放歌曲 - 跳转到音乐播放页面
 const handlePlaySong = (song) => {
   console.log('播放歌曲:', song.title)
-  // 跳转到音乐播放页面，传递歌曲信息
-  // 由于当前音乐播放页面是固定的，我们可以先跳转到 /music
-  // 后续可以扩展为传递歌曲ID或信息
-  router.push('/music')
+  // 跳转到音乐播放页面，传递歌曲ID
+  router.push({ path: '/music', query: { songId: song.id } })
 }
 
 // 页面加载时检查cookie

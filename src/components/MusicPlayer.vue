@@ -12,6 +12,7 @@
       @timeupdate="updateProgress" 
       @loadedmetadata="updateDuration"
       @ended="handleAudioEnded"
+      @error="handleAudioError"
       preload="metadata"
       :controlsList="'nodownload nofullscreen noplaybackrate'"
     >
@@ -47,7 +48,7 @@
           v-for="(song, index) in playlist" 
           :key="index" 
           class="playlist-item" 
-          :class="{ active: currentSongIndex === index }"
+          :class="{ active: localCurrentSongIndex === index }"
           @click="playSong(index)"
         >
           <span class="song-title">{{ song.title }}</span>
@@ -59,13 +60,17 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, nextTick } from 'vue'
 
 // Props
 const props = defineProps({
   playlist: {
     type: Array,
     default: () => []
+  },
+  currentSongIndex: {
+    type: Number,
+    default: 0
   }
 })
 
@@ -77,19 +82,126 @@ const audioRef = ref(null)
 const currentTime = ref(0)
 const duration = ref(0)
 const progress = ref(0)
-const currentSongIndex = ref(0)
 const isPlaying = ref(false)
 
-// 计算属性
-const currentSong = ref({ title: '', artist: '', src: '' })
+// 使用props传入的索引作为当前播放索引
+const localCurrentSongIndex = ref(0) // 初始化为0
 
-// 监听播放列表变化
-watch(() => props.playlist, (newPlaylist) => {
-  if (newPlaylist && newPlaylist.length > 0) {
-    currentSong.value = { ...newPlaylist[0] }
-    currentSongIndex.value = 0
+// 计算属性获取当前歌曲
+const currentSong = ref({})  // 初始化为空对象
+
+// 方案5：使用一个统一的更新函数
+const updateCurrentSong = (index) => {
+  if (!props.playlist || !Array.isArray(props.playlist) || props.playlist.length === 0) {
+    console.log('播放列表无效，无法更新歌曲');
+    return false;
   }
-}, { immediate: true })
+  
+  // 确保索引有效
+  let validIndex = index;
+  if (validIndex === undefined || validIndex === null || validIndex < 0) {
+    validIndex = 0;
+  }
+  if (validIndex >= props.playlist.length) {
+    validIndex = 0;
+  }
+  
+  // 避免重复更新
+  if (validIndex === localCurrentSongIndex.value && currentSong.value.title) {
+    console.log('索引相同，跳过更新');
+    return false;
+  }
+  
+  console.log('更新歌曲索引:', validIndex);
+  localCurrentSongIndex.value = validIndex;
+  currentSong.value = props.playlist[validIndex];
+  
+  nextTick(() => {
+    if (currentSong.value) {
+      attemptPlay(currentSong.value, validIndex);
+    }
+  });
+  
+  return true;
+};
+
+// 监听 playlist 变化
+watch(
+  () => props.playlist,
+  (newPlaylist) => {
+    console.log('playlist 更新:', newPlaylist?.length);
+    if (newPlaylist && newPlaylist.length > 0) {
+      updateCurrentSong(props.currentSongIndex);
+    }
+  },
+  { immediate: true }
+);
+
+// 监听 currentSongIndex 变化
+watch(
+  () => props.currentSongIndex,
+  (newIndex) => {
+    console.log('currentSongIndex 更新:', newIndex);
+    updateCurrentSong(newIndex);
+  },
+  { immediate: true }
+);
+
+// 辅助函数：尝试播放音频并处理状态
+const attemptPlay = (song, index) => {
+  if (!audioRef.value) return
+
+  console.log('尝试播放:', song.title, 'Src:', song.src)
+  console.log('音频元素状态 - ReadyState:', audioRef.value.readyState, 'NetworkState:', audioRef.value.networkState)
+
+  // 确保 src 已设置
+  if (audioRef.value.src !== song.src) {
+    audioRef.value.src = song.src
+    audioRef.value.load()
+    console.log('重新加载音频源:', song.src)
+  }
+
+  // 稍微延迟以确保 load() 启动
+  setTimeout(() => {
+    if (!audioRef.value) return
+    
+    console.log('播放前最终检查 - ReadyState:', audioRef.value.readyState, 'NetworkState:', audioRef.value.networkState)
+
+    try {
+      const playPromise = audioRef.value.play()
+      
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log('播放成功:', song.title)
+            isPlaying.value = true
+            emit('song-change', song, index)
+          })
+          .catch((error) => {
+            console.warn('播放失败或被阻止:', error.name, error.message)
+            isPlaying.value = false
+            // 即使播放失败，也通知父组件歌曲已切换（但可能未播放）
+            emit('song-change', song, index)
+          })
+      } else {
+        // 兼容旧浏览器
+        console.log('播放开始 (无 Promise):', song.title)
+        isPlaying.value = true
+        emit('song-change', song, index)
+      }
+    } catch (error) {
+      console.error('播放调用异常:', error)
+      isPlaying.value = false
+      emit('song-change', song, index)
+    }
+  }, 50)
+}
+
+watch(() => localCurrentSongIndex.value, (newIndex) => {
+  if (props.playlist && props.playlist.length > 0) {
+    currentSong.value = props.playlist[newIndex] || props.playlist[0]
+  }
+})
 
 // 格式化时间 (秒转 MM:SS)
 const formatTime = (seconds) => {
@@ -124,7 +236,7 @@ const handleAudioEnded = () => {
   
   // 如果有下一首，自动播放
   if (props.playlist.length > 1) {
-    const nextIndex = (currentSongIndex.value + 1) % props.playlist.length
+    const nextIndex = (localCurrentSongIndex.value + 1) % props.playlist.length
     playSong(nextIndex)
   }
 }
@@ -174,20 +286,26 @@ const skipForward = () => {
 // 播放指定歌曲
 const playSong = (index) => {
   if (index >= 0 && index < props.playlist.length) {
-    currentSongIndex.value = index
-    currentSong.value = { ...props.playlist[index] }
-    emit('song-change', currentSong.value, index)
+    console.log('用户点击播放歌曲索引:', index)
+    localCurrentSongIndex.value = index
+    const song = props.playlist[index]
     
-    // 延迟一下确保DOM更新后再播放
-    setTimeout(() => {
-      if (audioRef.value) {
-        audioRef.value.play().catch(e => {
-          console.warn('自动播放被阻止:', e)
-        })
-        isPlaying.value = true
-      }
-    }, 100)
+    // 更新当前歌曲引用
+    currentSong.value = song
+
+    // 使用统一的播放尝试逻辑
+    nextTick(() => {
+      attemptPlay(song, index)
+    })
   }
+}
+
+// 处理音频错误
+const handleAudioError = (event) => {
+  console.error('音频播放错误:', event)
+  console.error('错误代码:', audioRef.value?.error?.code)
+  console.error('错误消息:', audioRef.value?.error?.message)
+  isPlaying.value = false
 }
 </script>
 
@@ -321,15 +439,16 @@ audio {
 .playlist-item {
   display: flex;
   justify-content: space-between;
-  padding: 10px 0;
-  border-bottom: 1px solid #f0f0f0;
+  padding: 10px;
+  border-radius: 10px;
+  /* border-bottom: 1px solid #f0f0f0; */
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .playlist-item:hover {
   background-color: #f8f9fa;
-  transform: translateX(5px);
+  /* transform: translateX(5px); */
 }
 
 .playlist-item.active {
@@ -340,6 +459,7 @@ audio {
 
 .song-title {
   font-weight: 500;
+  color: #888;
 }
 
 .song-artist {
