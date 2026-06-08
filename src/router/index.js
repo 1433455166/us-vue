@@ -51,6 +51,11 @@ const routes = [
         path: '/declaration',
         name: 'declaration',
         component: () => import("../views/declaration.vue"),
+    },
+    {
+        path: '/game/multiplicationTable',
+        name: 'multiplicationTable',
+        component: () => import("../views/game/multiplicationTable.vue"),
     }
 ];
 
