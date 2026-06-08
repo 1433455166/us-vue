@@ -11,3 +11,8 @@ export enum ROUTER_TYPE {
   declaration = 'declaration', // 网站声明
   musicList = 'musicList', // 音乐列表
 };
+
+// java 接口地址 731
+// 本地 192.168.31.107
+// 线上环境 115.190.127.28
+export const ADDRESS = "192.168.31.107:731"
