@@ -740,7 +740,7 @@ audio {
 
 .drawer-content {
   position: absolute;
-  bottom: -60%;
+  bottom: -72%;
   left: 0;
   right: 0;
   background: white;
@@ -781,6 +781,9 @@ audio {
   padding: 10px;
   max-height: calc(60vh - 70px);
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .drawer-item {
@@ -791,6 +794,7 @@ audio {
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
+  background: #fafafa;
 }
 
 .drawer-item:hover {

@@ -14,5 +14,69 @@
     "src": "/mp3/sweetWound.mp3",
     "duration": "3:42",
     "lyrics": "/mp3/lyrics/sweetWound.txt"
+  },
+  {
+    "id": 3,
+    "title": "偏爱",
+    "artist": "张芸京",
+    "src": "/mp3/favorite.mp3",
+    "duration": "4:33",
+    "lyrics": "/mp3/lyrics/favorite.txt"
+  },
+  {
+    "id": 4,
+    "title": "抽离",
+    "artist": "刘丹萌&徐良",
+    "src": "/mp3/pullAway.mp3",
+    "duration": "4:21",
+    "lyrics": "/mp3/lyrics/pullAway.txt"
+  },
+  {
+    "id": 5,
+    "title": "后会无期",
+    "artist": "汪苏泷&徐良",
+    "src": "/mp3/noReturn.mp3",
+    "duration": "4:44",
+    "lyrics": "/mp3/lyrics/noReturn.txt"
+  },
+  {
+    "id": 6,
+    "title": "听妈妈的话",
+    "artist": "周杰伦",
+    "src": "/mp3/listenToMom.mp3",
+    "duration": "4:26",
+    "lyrics": "/mp3/lyrics/listenToMom.txt"
+  },
+  {
+    "id": 7,
+    "title": "水手",
+    "artist": "郑智化",
+    "src": "/mp3/sailor.mp3",
+    "duration": "4:58",
+    "lyrics": "/mp3/lyrics/sailor.txt"
+  },
+  {
+    "id": 8,
+    "title": "爱情鸟",
+    "artist": "林依轮",
+    "src": "/mp3/loveBird.mp3",
+    "duration": "4:05",
+    "lyrics": "/mp3/lyrics/loveBird.txt"
+  },
+  {
+    "id": 9,
+    "title": "稻香",
+    "artist": "周杰伦",
+    "src": "/mp3/riceFragrance.mp3",
+    "duration": "3:43",
+    "lyrics": "/mp3/lyrics/riceFragrance.txt"
+  },
+  {
+    "id": 10,
+    "title": "小苹果",
+    "artist": "筷子兄弟",
+    "src": "/mp3/littleApple.mp3",
+    "duration": "3:32",
+    "lyrics": "/mp3/lyrics/littleApple.txt"
   }
 ]

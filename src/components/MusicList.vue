@@ -78,6 +78,8 @@ const playSong = (song) => {
   display: flex;
   flex-direction: column;
   gap: 15px;
+  max-height: calc(100vh - 124px);
+  overflow-y: auto;
 }
 
 .music-item {
