@@ -6,7 +6,7 @@ import { ADDRESS } from './src/common/enum.ts';
 // const address = `${window.location.protocol}//${window.location.hostname}:731` // 本地
 // const address = 'http://localhost:731' // 本地
 // const address = 'http://192.168.31.107:731' // 本地
-// export const ADDRESS = "192.168.31.107:731" // java 接口地址 本地
+// export const ADDRESS = "192.168.31.40:731" // java 接口地址 本地
 
 // const address = 'http://115.190.127.28:731'; // 线上环境
 
@@ -24,7 +24,7 @@ export default defineConfig({
     server: {
         proxy: {
             '/lzApi': {
-                target: ADDRESS,
+                target: `http://${ADDRESS}`,
                 changeOrigin: true,
                 rewrite: (path) => path.replace(/^\/lzApi/, '')
             }

@@ -7,6 +7,8 @@
       <MusicPlayer 
         :playlist="playlist" 
         :current-song-index="currentSongIndex"
+        :initial-time="initialTime"
+        :initial-playing="initialPlaying"
         @song-change="handleSongChange"
         @play-end="handlePlayEnd"
       />
@@ -15,7 +17,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import BackButton from '../components/BackButton.vue'
 import MusicPlayer from '../components/MusicPlayer.vue'
@@ -40,6 +42,12 @@ const playlist = ref(musicListData)
 
 // 当前播放索引
 const currentSongIndex = ref(0)
+
+// 初始播放时间
+const initialTime = computed(() => parseFloat(route.query.time) || 0)
+
+// 初始播放状态
+const initialPlaying = computed(() => route.query.playing === 'true')
 
 // 处理歌曲切换
 const handleSongChange = (song, index) => {
@@ -74,18 +82,20 @@ onMounted(() => {
   // 可以在这里添加额外的初始化逻辑
   console.log('音乐播放器已加载')
 })
-
 </script>
 
 <style scoped>
 .music-container {
   min-height: 100vh;
+  max-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .page-title {
@@ -94,6 +104,7 @@ onMounted(() => {
   margin: 20px 0 40px 0;
   font-size: 28px;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;
 }
 
 /* 响应式设计 */

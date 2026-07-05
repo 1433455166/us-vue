@@ -4,13 +4,15 @@
     "title": "本草纲目",
     "artist": "周杰伦",
     "src": "/mp3/compendiumMateriaMedica.mp3",
-    "duration": "3:26"
+    "duration": "3:26",
+    "lyrics": "/mp3/lyrics/compendiumMateriaMedica.txt"
   },
   {
     "id": 2,
     "title": "甜蜜的伤口",
     "artist": "山野（李昊瀚）",
     "src": "/mp3/sweetWound.mp3",
-    "duration": "3:42"
+    "duration": "3:42",
+    "lyrics": "/mp3/lyrics/sweetWound.txt"
   }
 ]

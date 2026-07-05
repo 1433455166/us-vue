@@ -1,66 +1,111 @@
 <template>
-  <div class="music-player">
-    <div class="music-info">
-      <h2>{{ currentSong.title }}</h2>
-      <p>{{ currentSong.artist }}</p>
-    </div>
-    
-    <!-- 音频元素（保持功能但隐藏） -->
-    <audio 
-      ref="audioRef" 
-      :src="currentSong.src" 
-      @timeupdate="updateProgress" 
-      @loadedmetadata="updateDuration"
-      @ended="handleAudioEnded"
-      @error="handleAudioError"
-      preload="metadata"
-      :controlsList="'nodownload nofullscreen noplaybackrate'"
-    >
-      您的浏览器不支持音频播放。
-    </audio>
-    
-    <div class="audio-controls">
-      <!-- 控制按钮：快退 | 播放 | 快进 - 同一行 -->
-      <div class="control-row">
-        <button @click="skipBackward" class="control-btn">⏪</button>
-        <button @click="togglePlayPause" class="control-btn play-btn">
-          {{ isPlaying ? '⏸️' : '▶️' }}
-        </button>
-        <button @click="skipForward" class="control-btn">⏩</button>
+  <div class="music-player-wrapper">
+    <div class="music-player" @touchstart="handleTouchStart" @touchmove="handleTouchMove" @touchend="handleTouchEnd">
+      <div class="music-info">
+        <h2>{{ currentSong.title }}</h2>
+        <p>{{ currentSong.artist }}</p>
       </div>
       
-      <!-- 进度条和时间信息 - 恢复到之前位置 -->
-      <div class="progress-time-container">
-        <div class="progress-container" @click="seekAudio">
-          <div class="progress-bar" :style="{ width: progress + '%' }"></div>
+      <!-- 音频元素（保持功能但隐藏） -->
+      <audio 
+        ref="audioRef" 
+        :src="currentSong.src" 
+        @timeupdate="updateProgress" 
+        @loadedmetadata="updateDuration"
+        @ended="handleAudioEnded"
+        @error="handleAudioError"
+        preload="metadata"
+        :controlsList="'nodownload nofullscreen noplaybackrate'"
+      >
+        您的浏览器不支持音频播放。
+      </audio>
+      
+      <div class="audio-controls">
+        <!-- 控制按钮：快退 | 播放 | 快进 - 同一行 -->
+        <div class="control-row">
+          <button @click="skipBackward" class="control-btn">⏪</button>
+          <button @click="togglePlayPause" class="control-btn play-btn">
+            {{ isPlaying ? '⏸️' : '▶️' }}
+          </button>
+          <button @click="skipForward" class="control-btn">⏩</button>
         </div>
-        <div class="time-info">
-          <span>{{ formatTime(currentTime) }}</span>
-          <span>{{ formatTime(duration) }}</span>
+        
+        <!-- 进度条和时间信息 - 恢复到之前位置 -->
+        <div class="progress-time-container">
+          <div class="progress-container" @click="seekAudio">
+            <div class="progress-bar" :style="{ width: progress + '%' }"></div>
+          </div>
+          <div class="time-info">
+            <span>{{ formatTime(currentTime) }}</span>
+            <span>{{ formatTime(duration) }}</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 当前歌词显示 -->
+      <div class="current-lyric-display">
+        <span class="lyric-label">正在播放：</span>
+        <span class="lyric-text">{{ currentLyricText }}</span>
+      </div>
+      
+      <!-- 操作按钮区 -->
+      <div class="action-buttons">
+        <button @click="toggleLyricsDrawer" class="action-btn lyrics-btn">
+          📝 查看歌词
+        </button>
+        <button @click="togglePlaylistDrawer" class="action-btn playlist-btn">
+          📋 播放列表
+        </button>
+      </div>
+    </div>
+    
+    <!-- 播放列表抽屉 -->
+    <div class="playlist-drawer" :class="{ open: showPlaylist }">
+      <div class="drawer-mask" @click="togglePlaylistDrawer"></div>
+      <div class="drawer-content">
+        <div class="drawer-header">
+          <h3>播放列表</h3>
+          <button @click="togglePlaylistDrawer" class="close-btn">✕</button>
+        </div>
+        <div class="drawer-list">
+          <div 
+            v-for="(song, index) in playlist" 
+            :key="index" 
+            class="drawer-item" 
+            :class="{ active: localCurrentSongIndex === index }"
+            @click="playSong(index)"
+          >
+            <div class="item-info">
+              <span class="item-title">{{ song.title }}</span>
+              <span class="item-artist">{{ song.artist }}</span>
+            </div>
+            <span class="item-indicator" v-if="localCurrentSongIndex === index">
+              {{ isPlaying ? '▶️' : '⏸️' }}
+            </span>
+          </div>
         </div>
       </div>
     </div>
     
-    <div class="playlist" v-if="playlist.length > 1">
-      <h3>播放列表</h3>
-      <ul>
-        <li 
-          v-for="(song, index) in playlist" 
-          :key="index" 
-          class="playlist-item" 
-          :class="{ active: localCurrentSongIndex === index }"
-          @click="playSong(index)"
-        >
-          <span class="song-title">{{ song.title }}</span>
-          <span class="song-artist">{{ song.artist }}</span>
-        </li>
-      </ul>
-    </div>
+    <!-- 歌词抽屉 -->
+    <LyricsDrawer 
+      :visible="showLyricsDrawer" 
+      :song-id="currentSong.id"
+      :audio-ref="audioRef"
+      :is-playing="isPlaying"
+      @close="showLyricsDrawer = false"
+      @lyric-change="handleLyricChange"
+      @play-state-change="handlePlayStateChange"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, watch, nextTick } from 'vue'
+import { ref, watch, nextTick, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import LyricsDrawer from './LyricsDrawer.vue'
+
+const router = useRouter()
 
 // Props
 const props = defineProps({
@@ -71,6 +116,14 @@ const props = defineProps({
   currentSongIndex: {
     type: Number,
     default: 0
+  },
+  initialTime: {
+    type: Number,
+    default: 0
+  },
+  initialPlaying: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -83,12 +136,98 @@ const currentTime = ref(0)
 const duration = ref(0)
 const progress = ref(0)
 const isPlaying = ref(false)
+const hasInitialized = ref(false)
 
 // 使用props传入的索引作为当前播放索引
-const localCurrentSongIndex = ref(0) // 初始化为0
+const localCurrentSongIndex = ref(0)
 
 // 计算属性获取当前歌曲
-const currentSong = ref({})  // 初始化为空对象
+const currentSong = ref({})
+
+// 歌词相关
+const lyrics = ref([])
+const lyricsLoaded = ref(false)
+const lyricsRef = ref(null)
+const currentLyricIndex = ref(-1)
+const lyricsOffset = ref(0)
+const currentLyricText = ref('')
+
+// 抽屉状态
+const showPlaylist = ref(false)
+const showLyricsDrawer = ref(false)
+
+// 触摸滑动相关
+const touchStartY = ref(0)
+const touchCurrentY = ref(0)
+
+// 是否有歌词
+const hasLyrics = computed(() => {
+  return currentSong.value && currentSong.value.lyrics
+})
+
+// 解析歌词文件（支持 [MM:SS] 和 [MM:SS.xxx] 格式）
+const parseLyrics = (text) => {
+  const lines = text.split('\n')
+  const parsedLyrics = []
+  
+  for (const line of lines) {
+    const match = line.match(/\[(\d{2}):(\d{2})(?:\.(\d{2,3}))?\](.+)/)
+    if (match) {
+      const minutes = parseInt(match[1])
+      const seconds = parseInt(match[2])
+      const milliseconds = match[3] ? parseInt(match[3]) / 1000 : 0
+      const text = match[4].trim()
+      
+      if (text) {
+        parsedLyrics.push({
+          time: minutes * 60 + seconds + milliseconds,
+          text: text
+        })
+      }
+    }
+  }
+  
+  return parsedLyrics.sort((a, b) => a.time - b.time)
+}
+
+// 加载歌词
+const loadLyrics = async (lyricsPath) => {
+  if (!lyricsPath) {
+    lyrics.value = []
+    lyricsLoaded.value = true
+    return
+  }
+  
+  try {
+    const response = await fetch(lyricsPath)
+    if (response.ok) {
+      const text = await response.text()
+      lyrics.value = parseLyrics(text)
+    } else {
+      lyrics.value = []
+    }
+  } catch (error) {
+    console.error('加载歌词失败:', error)
+    lyrics.value = []
+  }
+  
+  lyricsLoaded.value = true
+  currentLyricIndex.value = -1
+}
+
+// 同步歌词
+const syncLyrics = () => {
+  if (!lyrics.value.length) return
+  
+  for (let i = lyrics.value.length - 1; i >= 0; i--) {
+    if (currentTime.value >= lyrics.value[i].time) {
+      if (currentLyricIndex.value !== i) {
+        currentLyricIndex.value = i
+      }
+      break
+    }
+  }
+}
 
 // 方案5：使用一个统一的更新函数
 const updateCurrentSong = (index) => {
@@ -97,7 +236,6 @@ const updateCurrentSong = (index) => {
     return false;
   }
   
-  // 确保索引有效
   let validIndex = index;
   if (validIndex === undefined || validIndex === null || validIndex < 0) {
     validIndex = 0;
@@ -106,7 +244,6 @@ const updateCurrentSong = (index) => {
     validIndex = 0;
   }
   
-  // 避免重复更新
   if (validIndex === localCurrentSongIndex.value && currentSong.value.title) {
     console.log('索引相同，跳过更新');
     return false;
@@ -116,6 +253,10 @@ const updateCurrentSong = (index) => {
   localCurrentSongIndex.value = validIndex;
   currentSong.value = props.playlist[validIndex];
   
+  // 加载歌词
+  lyricsLoaded.value = false
+  loadLyrics(currentSong.value.lyrics)
+  
   nextTick(() => {
     if (currentSong.value) {
       attemptPlay(currentSong.value, validIndex);
@@ -124,6 +265,37 @@ const updateCurrentSong = (index) => {
   
   return true;
 };
+
+// 初始化播放状态
+const initializePlayer = () => {
+  if (hasInitialized.value) return
+  
+  hasInitialized.value = true
+  
+  // 如果有初始播放时间，设置播放位置
+  if (props.initialTime > 0 && audioRef.value) {
+    audioRef.value.currentTime = props.initialTime
+    currentTime.value = props.initialTime
+  }
+  
+  // 如果需要自动播放
+  if (props.initialPlaying && audioRef.value) {
+    audioRef.value.play().then(() => {
+      isPlaying.value = true
+    }).catch(e => {
+      console.warn('自动播放失败:', e)
+    })
+  }
+}
+
+// 添加初始化钩子
+watch(() => currentSong.value.title, (title) => {
+  if (title && !hasInitialized.value) {
+    nextTick(() => {
+      initializePlayer()
+    })
+  }
+})
 
 // 监听 playlist 变化
 watch(
@@ -154,14 +326,12 @@ const attemptPlay = (song, index) => {
   console.log('尝试播放:', song.title, 'Src:', song.src)
   console.log('音频元素状态 - ReadyState:', audioRef.value.readyState, 'NetworkState:', audioRef.value.networkState)
 
-  // 确保 src 已设置
   if (audioRef.value.src !== song.src) {
     audioRef.value.src = song.src
     audioRef.value.load()
     console.log('重新加载音频源:', song.src)
   }
 
-  // 稍微延迟以确保 load() 启动
   setTimeout(() => {
     if (!audioRef.value) return
     
@@ -180,11 +350,9 @@ const attemptPlay = (song, index) => {
           .catch((error) => {
             console.warn('播放失败或被阻止:', error.name, error.message)
             isPlaying.value = false
-            // 即使播放失败，也通知父组件歌曲已切换（但可能未播放）
             emit('song-change', song, index)
           })
       } else {
-        // 兼容旧浏览器
         console.log('播放开始 (无 Promise):', song.title)
         isPlaying.value = true
         emit('song-change', song, index)
@@ -217,6 +385,7 @@ const updateProgress = () => {
     currentTime.value = audioRef.value.currentTime
     duration.value = audioRef.value.duration || 0
     progress.value = duration.value > 0 ? (currentTime.value / duration.value) * 100 : 0
+    syncLyrics()
   }
 }
 
@@ -232,9 +401,10 @@ const handleAudioEnded = () => {
   progress.value = 0
   currentTime.value = 0
   isPlaying.value = false
+  currentLyricIndex.value = -1
+  lyricsOffset.value = 0
   emit('play-end')
   
-  // 如果有下一首，自动播放
   if (props.playlist.length > 1) {
     const nextIndex = (localCurrentSongIndex.value + 1) % props.playlist.length
     playSong(nextIndex)
@@ -283,6 +453,19 @@ const skipForward = () => {
   }
 }
 
+// 点击歌词跳转到对应时间
+const seekToLyric = (time) => {
+  if (audioRef.value) {
+    audioRef.value.currentTime = time
+    if (!isPlaying.value) {
+      audioRef.value.play().catch(e => {
+        console.warn('播放失败:', e)
+      })
+      isPlaying.value = true
+    }
+  }
+}
+
 // 播放指定歌曲
 const playSong = (index) => {
   if (index >= 0 && index < props.playlist.length) {
@@ -290,13 +473,17 @@ const playSong = (index) => {
     localCurrentSongIndex.value = index
     const song = props.playlist[index]
     
-    // 更新当前歌曲引用
     currentSong.value = song
 
-    // 使用统一的播放尝试逻辑
+    lyricsLoaded.value = false
+    loadLyrics(song.lyrics)
+
     nextTick(() => {
       attemptPlay(song, index)
     })
+    
+    // 关闭抽屉
+    showPlaylist.value = false
   }
 }
 
@@ -307,17 +494,63 @@ const handleAudioError = (event) => {
   console.error('错误消息:', audioRef.value?.error?.message)
   isPlaying.value = false
 }
+
+// 切换歌词抽屉
+const toggleLyricsDrawer = () => {
+  showLyricsDrawer.value = !showLyricsDrawer.value
+}
+
+// 处理歌词变化
+const handleLyricChange = (data) => {
+  console.log('歌词变化:', data.lyric.text)
+  // 更新外部显示的当前歌词
+  currentLyricText.value = data.lyric.text
+}
+
+// 处理播放状态变化
+const handlePlayStateChange = (playing) => {
+  isPlaying.value = playing
+}
+
+// 切换播放列表抽屉
+const togglePlaylistDrawer = () => {
+  showPlaylist.value = !showPlaylist.value
+}
+
+// 触摸事件处理
+const handleTouchStart = (e) => {
+  touchStartY.value = e.touches[0].clientY
+}
+
+const handleTouchMove = (e) => {
+  touchCurrentY.value = e.touches[0].clientY
+}
+
+const handleTouchEnd = () => {
+  const diff = touchStartY.value - touchCurrentY.value
+  // 可以在这里添加滑动逻辑
+  console.log('滑动距离:', diff)
+}
 </script>
 
 <style scoped>
+.music-player-wrapper {
+  width: 100%;
+  min-height: 100vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .music-player {
   background: white;
   border-radius: 16px;
   padding: 30px;
   max-width: 600px;
   width: 100%;
+  margin: 0 auto;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   position: relative;
+  touch-action: pan-y;
 }
 
 .music-info {
@@ -337,7 +570,6 @@ const handleAudioError = (event) => {
   font-size: 16px;
 }
 
-/* 隐藏音频元素但保持功能 */
 audio {
   position: absolute;
   top: -9999px;
@@ -352,7 +584,6 @@ audio {
   margin-bottom: 30px;
 }
 
-/* 控制按钮行：快退 | 播放 | 快进 */
 .control-row {
   display: flex;
   justify-content: space-between;
@@ -366,7 +597,7 @@ audio {
   border: none;
   cursor: pointer;
   color: #667eea;
-  font-size: 28px; /* 统一大小 */
+  font-size: 28px;
   width: 60px;
   height: 60px;
   border-radius: 50%;
@@ -381,7 +612,6 @@ audio {
   background: none !important;
 }
 
-/* 播放按钮 */
 .play-btn {
   font-size: 60px;
   width: auto;
@@ -390,7 +620,6 @@ audio {
   margin: 0;
 }
 
-/* 进度条和时间容器 */
 .progress-time-container {
   width: 100%;
   display: flex;
@@ -423,55 +652,184 @@ audio {
   font-size: 14px;
 }
 
-.playlist {
-  border-top: 1px solid #eee;
-  padding-top: 20px;
-  width: 100%;
-}
-
-.playlist h3 {
-  color: #333;
-  margin: 0 0 15px 0;
-  font-size: 18px;
+/* 当前歌词显示 */
+.current-lyric-display {
   text-align: center;
+  padding: 18lpx;
+  margin-bottom: 15px;
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 12px;
+  min-height: 44lpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
-.playlist-item {
+.lyric-label {
+  color: rgba(0, 0, 0, 0.88);
+  font-size: 24lpx;
+}
+
+.lyric-text {
+  color: #000;
+  font-size: 27lpx;
+  font-weight: 500;
+  max-width: 72%;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 操作按钮区 */
+.action-buttons {
   display: flex;
-  justify-content: space-between;
-  padding: 10px;
-  border-radius: 10px;
-  /* border-bottom: 1px solid #f0f0f0; */
+  gap: 15px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.action-btn {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-size: 14px;
+  font-weight: bold;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.playlist-item:hover {
-  background-color: #f8f9fa;
-  /* transform: translateX(5px); */
+.action-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
 
-.playlist-item.active {
-  color: #667eea;
-  font-weight: bold;
-  background-color: #f0f4ff;
+/* 播放列表抽屉 */
+.playlist-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  pointer-events: none;
 }
 
-.song-title {
-  font-weight: 500;
-  color: #888;
+.playlist-drawer.open {
+  pointer-events: auto;
 }
 
-.song-artist {
-  color: #888;
+.drawer-mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.playlist-drawer.open .drawer-mask {
+  opacity: 1;
+}
+
+.drawer-content {
+  position: absolute;
+  bottom: -60%;
+  left: 0;
+  right: 0;
+  background: white;
+  border-radius: 20px 20px 0 0;
+  max-height: 60%;
+  overflow: hidden;
+  transition: bottom 0.3s ease;
+}
+
+.playlist-drawer.open .drawer-content {
+  bottom: 0;
+}
+
+.drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 25px;
+  border-bottom: 1px solid #eee;
+}
+
+.drawer-header h3 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 18px;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #999;
+  cursor: pointer;
+  padding: 5px;
+}
+
+.drawer-list {
+  padding: 10px;
+  max-height: calc(60vh - 70px);
+  overflow-y: auto;
+}
+
+.drawer-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.drawer-item:hover {
+  background: #f8f9fa;
+}
+
+.drawer-item.active {
+  background: #f0f4ff;
+}
+
+.item-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.item-title {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.item-artist {
   font-size: 14px;
+  color: #888;
+}
+
+.item-indicator {
+  font-size: 16px;
 }
 
 /* 响应式设计 */
 @media (max-width: 768px) {
+  .music-player-wrapper {
+    padding: 10px;
+  }
+  
   .music-player {
     padding: 20px;
-    margin: 0 10px;
+    margin: 0;
+    border-radius: 12px;
   }
   
   .music-info h2 {
@@ -491,6 +849,23 @@ audio {
   .control-row {
     max-width: 250px;
     gap: 15px;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+  }
+  
+  .action-btn {
+    width: 100%;
+    padding: 15px;
+  }
+  
+  .drawer-content {
+    max-height: 70%;
+  }
+  
+  .drawer-list {
+    max-height: calc(70vh - 70px);
   }
 }
 </style>
