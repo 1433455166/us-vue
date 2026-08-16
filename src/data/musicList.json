@@ -3,80 +3,130 @@
     "id": 1,
     "title": "本草纲目",
     "artist": "周杰伦",
+    "cover": "/images/music/compendiumMateriaMedica.jpg",
     "src": "/mp3/compendiumMateriaMedica.mp3",
     "duration": "3:26",
-    "lyrics": "/mp3/lyrics/compendiumMateriaMedica.txt"
+    "lyrics": "/lyrics/compendiumMateriaMedica.txt",
+    "lyricist": "方文山",
+    "composer": "周杰伦",
+    "arranger": "林迈可",
+    "palette": ["#2a1b3d", "#44318d", "#a4508b"]
   },
   {
     "id": 2,
     "title": "甜蜜的伤口",
     "artist": "山野（李昊瀚）",
+    "cover": "/images/music/sweetWound.jpg",
     "src": "/mp3/sweetWound.mp3",
     "duration": "3:42",
-    "lyrics": "/mp3/lyrics/sweetWound.txt"
+    "lyrics": "/lyrics/sweetWound.txt",
+    "lyricist": "山野",
+    "composer": "山野",
+    "arranger": "山野",
+    "palette": ["#3a1c71", "#d76d77", "#ffaf7b"]
   },
   {
     "id": 3,
     "title": "偏爱",
     "artist": "张芸京",
+    "cover": "/images/music/favorite.jpg",
     "src": "/mp3/favorite.mp3",
     "duration": "4:33",
-    "lyrics": "/mp3/lyrics/favorite.txt"
+    "lyrics": "/lyrics/favorite.txt",
+    "lyricist": "葛大为",
+    "composer": "张芸京",
+    "arranger": "陈星翰",
+    "palette": ["#0f2027", "#203a43", "#2c5364"]
   },
   {
     "id": 4,
     "title": "抽离",
     "artist": "刘丹萌&徐良",
+    "cover": "/images/music/pullAway.jpg",
     "src": "/mp3/pullAway.mp3",
     "duration": "4:21",
-    "lyrics": "/mp3/lyrics/pullAway.txt"
+    "lyrics": "/lyrics/pullAway.txt",
+    "lyricist": "徐良",
+    "composer": "徐良",
+    "arranger": "徐良",
+    "palette": ["#1a2a6c", "#b21f1f", "#fdbb2d"]
   },
   {
     "id": 5,
     "title": "后会无期",
     "artist": "汪苏泷&徐良",
+    "cover": "/images/music/noReturn.png",
     "src": "/mp3/noReturn.mp3",
     "duration": "4:44",
-    "lyrics": "/mp3/lyrics/noReturn.txt"
+    "lyrics": "/lyrics/noReturn.txt",
+    "lyricist": "汪苏泷",
+    "composer": "汪苏泷",
+    "arranger": "汪苏泷",
+    "palette": ["#373b44", "#4286f4"]
   },
   {
     "id": 6,
     "title": "听妈妈的话",
     "artist": "周杰伦",
+    "cover": "/images/music/listenToMom.jpg",
     "src": "/mp3/listenToMom.mp3",
     "duration": "4:26",
-    "lyrics": "/mp3/lyrics/listenToMom.txt"
+    "lyrics": "/lyrics/listenToMom.txt",
+    "lyricist": "周杰伦",
+    "composer": "周杰伦",
+    "arranger": "钟兴民",
+    "palette": ["#56ab2f", "#a8e063"]
   },
   {
     "id": 7,
     "title": "水手",
     "artist": "郑智化",
+    "cover": "/images/music/sailor.webp",
     "src": "/mp3/sailor.mp3",
     "duration": "4:58",
-    "lyrics": "/mp3/lyrics/sailor.txt"
+    "lyrics": "/lyrics/sailor.txt",
+    "lyricist": "郑智化",
+    "composer": "郑智化",
+    "arranger": "郑智化",
+    "palette": ["#000046", "#1cb5e0"]
   },
   {
     "id": 8,
     "title": "爱情鸟",
     "artist": "林依轮",
+    "cover": "/images/music/loveBird.webp",
     "src": "/mp3/loveBird.mp3",
     "duration": "4:05",
-    "lyrics": "/mp3/lyrics/loveBird.txt"
+    "lyrics": "/lyrics/loveBird.txt",
+    "lyricist": "甘萍",
+    "composer": "李军",
+    "arranger": "李军",
+    "palette": ["#f7971e", "#ffd200"]
   },
   {
     "id": 9,
     "title": "稻香",
     "artist": "周杰伦",
+    "cover": "/images/music/compendiumMateriaMedica.jpg",
     "src": "/mp3/riceFragrance.mp3",
     "duration": "3:43",
-    "lyrics": "/mp3/lyrics/riceFragrance.txt"
+    "lyrics": "/lyrics/riceFragrance.txt",
+    "lyricist": "周杰伦",
+    "composer": "周杰伦",
+    "arranger": "钟兴民",
+    "palette": ["#134e5e", "#71b280"]
   },
   {
     "id": 10,
     "title": "小苹果",
     "artist": "筷子兄弟",
+    "cover": "/images/music/littleApple.jpg",
     "src": "/mp3/littleApple.mp3",
     "duration": "3:32",
-    "lyrics": "/mp3/lyrics/littleApple.txt"
+    "lyrics": "/lyrics/littleApple.txt",
+    "lyricist": "筷子兄弟",
+    "composer": "筷子兄弟",
+    "arranger": "赵佳霖",
+    "palette": ["#e53935", "#e35d5b", "#ff9966"]
   }
 ]

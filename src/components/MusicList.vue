@@ -13,8 +13,20 @@
         @click="playSong(song)"
       >
         <div class="song-info">
-          <h3 class="song-title">{{ song.title }}</h3>
-          <p class="song-artist">{{ song.artist }}</p>
+          <div class="thumb-wrap">
+            <img
+              v-if="song.cover"
+              class="song-thumb"
+              :src="song.cover"
+              :alt="song.title"
+              loading="lazy"
+            />
+            <div v-else class="song-thumb fallback">{{ song.title.charAt(0) }}</div>
+          </div>
+          <div class="song-text">
+            <h3 class="song-title">{{ song.title }}</h3>
+            <p class="song-artist">{{ song.artist }}</p>
+          </div>
         </div>
         <div class="song-actions">
           <button class="play-btn" @click.stop="playSong(song)">▶️</button>
@@ -101,6 +113,38 @@ const playSong = (song) => {
 }
 
 .song-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.thumb-wrap {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+}
+
+.song-thumb {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.song-thumb.fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.song-text {
   flex: 1;
   min-width: 0;
 }

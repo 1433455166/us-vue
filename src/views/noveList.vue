@@ -42,9 +42,7 @@
         class="back-to-top"
         @click="scrollToTop"
       >
-        <svg viewBox="0 0 24 24" width="20" height="20">
-          <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z" fill="currentColor"/>
-        </svg>
+        <SvgChevron direction="up" :size="20" />
       </button>
     </template>
   </div>
@@ -54,6 +52,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import BookCard from '../components/novel/BookCard.vue'
 import BackButton from '../components/BackButton.vue'
+import SvgChevron from '../components/svgIcon/SvgChevron.vue'
 import PasswordGuard from '../components/PasswordGuard.vue'
 import { novels } from '../data/novels.js'
 import Cookies from 'js-cookie'

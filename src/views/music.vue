@@ -2,15 +2,12 @@
   <div class="music-container">
     <PasswordGuard v-if="!isAuthenticated" @success="handleAuthSuccess" />
     <template v-else>
-      <BackButton />
-      <h1 class="page-title">音乐播放器</h1>
-      <MusicPlayer 
-        :playlist="playlist" 
-        :current-song-index="currentSongIndex"
-        :initial-time="initialTime"
-        :initial-playing="initialPlaying"
+      <BackButton class="music-back" />
+      <MusicPlayer
+        :songs="playlist"
+        :initial-index="currentSongIndex"
+        :auto-play="initialPlaying"
         @song-change="handleSongChange"
-        @play-end="handlePlayEnd"
       />
     </template>
   </div>
@@ -19,8 +16,8 @@
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import BackButton from '../components/BackButton.vue'
 import MusicPlayer from '../components/MusicPlayer.vue'
+import BackButton from '../components/BackButton.vue'
 import PasswordGuard from '../components/PasswordGuard.vue'
 import Cookies from 'js-cookie'
 import { accessPassword } from '../common/const'
@@ -43,9 +40,6 @@ const playlist = ref(musicListData)
 // 当前播放索引
 const currentSongIndex = ref(0)
 
-// 初始播放时间
-const initialTime = computed(() => parseFloat(route.query.time) || 0)
-
 // 初始播放状态
 const initialPlaying = computed(() => route.query.playing === 'true')
 
@@ -53,11 +47,6 @@ const initialPlaying = computed(() => route.query.playing === 'true')
 const handleSongChange = (song, index) => {
   console.log('当前播放:', song.title, '索引:', index)
   currentSongIndex.value = index
-}
-
-// 处理播放结束
-const handlePlayEnd = () => {
-  console.log('播放结束')
 }
 
 // 监听路由参数变化
@@ -78,44 +67,27 @@ onMounted(() => {
   if (storedPassword && storedPassword === accessPassword) {
     isAuthenticated.value = true
   }
-  
-  // 可以在这里添加额外的初始化逻辑
+
   console.log('音乐播放器已加载')
 })
 </script>
 
 <style scoped>
 .music-container {
-  /* min-height: 100vh; */
-  /* max-height: 100vh; */
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #0a0a0a;
 }
 
-.page-title {
-  color: white;
-  text-align: center;
-  margin: 20px 0 40px 0;
-  font-size: 28px;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  flex-shrink: 0;
-}
-
-/* 响应式设计 */
-@media (max-width: 768px) {
-  .music-container {
-    padding: 10px;
-  }
-  
-  .page-title {
-    font-size: 24px;
-    margin: 10px 0 30px 0;
-  }
+/* 返回按钮置顶，避免被播放器遮挡 */
+.music-container :deep(.music-back) {
+  position: fixed;
+  top: 12px;
+  left: 14px;
+  z-index: 100;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.35);
 }
 </style>

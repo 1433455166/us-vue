@@ -32,9 +32,7 @@
           @click="handleClose"
           aria-label="关闭弹窗"
         >
-          <svg viewBox="0 0 24 24" width="20" height="20">
-            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="currentColor"/>
-          </svg>
+          <SvgClose :size="20" />
         </button>
         
         <!-- 弹窗内容插槽 -->
@@ -62,6 +60,7 @@
 
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue'
+import SvgClose from '../svgIcon/SvgClose.vue'
 
 const props = defineProps({
   // 控制显示

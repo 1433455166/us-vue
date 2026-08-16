@@ -6,9 +6,7 @@
         :class="{ disabled: currentChapter?.id <= 1 }"
         @click="handlePrev"
       >
-        <svg viewBox="0 0 24 24" width="24" height="24">
-          <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" fill="currentColor"/>
-        </svg>
+        <SvgChevron direction="left" :size="24" />
         上一章
       </button>
       
@@ -26,9 +24,7 @@
         @click="handleNext"
       >
         下一章
-        <svg viewBox="0 0 24 24" width="24" height="24">
-          <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="currentColor"/>
-        </svg>
+        <SvgChevron direction="right" :size="24" />
       </button>
     </div>
     
@@ -47,6 +43,8 @@
   </div>
 </template>
 <script setup>
+import SvgChevron from '../svgIcon/SvgChevron.vue';
+
 const props = defineProps({
   currentChapter: Object,
   totalChapters: Number

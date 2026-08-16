@@ -28,7 +28,6 @@ import BackButton from '../components/BackButton.vue'
 .declaration-container {
   min-height: 100vh;
   background-color: #f9f9f9;
-  padding: 20px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -39,8 +38,8 @@ import BackButton from '../components/BackButton.vue'
   padding: 30px;
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  max-width: 800px;
   width: 100%;
+  height: 100vh;
   line-height: 1.6;
   color: #333;
   position: relative;
@@ -49,7 +48,7 @@ import BackButton from '../components/BackButton.vue'
 .declaration-content h1 {
   text-align: center;
   color: #2c3e50;
-  margin-bottom: 30px;
+  margin: 24lpx 0 64lpx;
   font-size: 24px;
 }
 

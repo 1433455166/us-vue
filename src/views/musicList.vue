@@ -37,8 +37,8 @@ const router = useRouter()
 // 处理播放歌曲 - 跳转到音乐播放页面
 const handlePlaySong = (song) => {
   console.log('播放歌曲:', song.title)
-  // 跳转到音乐播放页面，传递歌曲ID
-  router.push({ path: '/music', query: { songId: song.id } })
+  // 跳转到音乐播放页面，传递歌曲ID并自动播放
+  router.push({ path: '/music', query: { songId: song.id, playing: 'true' } })
 }
 
 // 页面加载时检查cookie
