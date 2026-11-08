@@ -17,7 +17,7 @@
             <img
               v-if="song.cover"
               class="song-thumb"
-              :src="song.cover"
+              :src="getAssetUrl(song.cover)"
               :alt="song.title"
               loading="lazy"
             />
@@ -42,6 +42,7 @@
 
 <script setup>
 import { ref } from 'vue'
+import { getAssetUrl } from '../utils/asset'
 
 // Props
 const props = defineProps({

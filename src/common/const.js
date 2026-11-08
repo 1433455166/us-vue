@@ -1,9 +1,4 @@
-// 地址
-export const address = {
-  // 后端
-  backend: `${window.location.protocol}//${window.location.hostname}:731`, // 本地
-//   backend: 'http://154.64.235.142:731', // 线上
-};
+// 后端地址已统一到 src/common/enum.ts 的 ADDRESS
 
 // 访问密码 yourSecretPassword
 export const accessPassword = 'LZ1234cc';

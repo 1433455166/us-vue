@@ -155,7 +155,7 @@
     <!-- 音频元素 -->
     <audio
       ref="audioRef"
-      :src="currentSong.src"
+      :src="getAssetUrl(currentSong.src)"
       :playbackRate="rate"
       @timeupdate="onTimeUpdate"
       @loadedmetadata="onLoadedMetadata"
@@ -267,6 +267,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import LyricsDrawer from './LyricsDrawer.vue';
+import { getAssetUrl } from '../utils/asset';
 import SvgPlay from './svgIcon/SvgPlay.vue';
 import SvgPause from './svgIcon/SvgPause.vue';
 import SvgClose from './svgIcon/SvgClose.vue';
@@ -376,7 +377,7 @@ const nextLine = computed(() => lyricLines.value[activePreviewIdx.value + 1] || 
 async function loadLyrics(url) {
   if (!url) { lyrics.value = []; return; }
   try {
-    const res = await fetch(url);
+    const res = await fetch(getAssetUrl(url));
     const text = await res.text();
     lyrics.value = parseLyrics(text);
   } catch (e) {
@@ -619,7 +620,7 @@ const bgGradientStyle = computed(() => {
   if (s && s.cover) {
     return {
       // 上面渐变：遮住顶部 tab 区；下面渐变：贴合底部文字信息
-      backgroundImage: `linear-gradient(180deg, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0) 22%, rgba(0, 0, 0, 0) 62%, rgba(0, 0, 0, 0.65) 100%), url(${s.cover})`,
+      backgroundImage: `linear-gradient(180deg, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0) 22%, rgba(0, 0, 0, 0) 62%, rgba(0, 0, 0, 0.65) 100%), url(${getAssetUrl(s.cover)})`,
       backgroundSize: '100% auto',
     //   backgroundPosition: 'center',
       backgroundRepeat: 'no-repeat',

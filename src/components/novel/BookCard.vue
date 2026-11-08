@@ -6,7 +6,7 @@
   >
     <!-- 图片区域 -->
     <div class="book-cover">
-      <img :src="novel.cover" :alt="novel.title" @error="handleImageError" />
+      <img :src="getAssetUrl(novel.cover)" :alt="novel.title" @error="handleImageError" />
       
       <!-- 角标 -->
       <div v-if="novel.isHot" class="badge hot">🔥 热门</div>
@@ -94,6 +94,7 @@
 <script setup>
 import { defineProps } from 'vue'
 import { lpxToVw } from '../../utils/lpx'
+import { getAssetUrl } from '../../utils/asset'
 
 const props = defineProps({
   novel: {
@@ -131,7 +132,7 @@ const formatDate = (dateStr) => {
 
 // 图片加载失败时显示默认图片
 const handleImageError = (e) => {
-    e.target.src = '../../../public/images/novel/novel002.png'
+    e.target.src = getAssetUrl('images/novel/novel002.png')
 }
 </script>
 <style scoped>

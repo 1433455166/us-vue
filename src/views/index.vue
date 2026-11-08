@@ -2,7 +2,7 @@
   <div class="app">
     <header ref="headerRef" class='header'>
         <div class="width-300">
-            <h1>这是一个 vue 项目</h1>
+            <h2>陈大爷个人项目</h2>
             <div class="clock">{{ currentTime }}</div>
         </div>
     </header>
@@ -74,12 +74,19 @@ let timer = null
 
 const updateTime = () => {
   const now = new Date()
-  currentTime.value = now.toLocaleTimeString('zh-CN', {
+  const date = now.toLocaleDateString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    weekday: 'short'
+  })
+  const time = now.toLocaleTimeString('zh-CN', {
     hour12: false,
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit'
   })
+  currentTime.value = `${date} ${time}`
 }
 
 const checkAndShowDailyPop = async () => {
@@ -173,7 +180,7 @@ const handleConfirm = () => {
 
 .clock {
   margin-top: 0.5rem;
-  font-size: 1.5rem;
+  font-size: 1rem;
   font-weight: bold;
   font-family: 'Courier New', monospace;
 }

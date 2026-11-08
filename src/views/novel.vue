@@ -35,7 +35,7 @@ const isAuthenticated = ref(false)
 // 卡片数据
 // 个人喜爱的小说，个人阅读用，侵权联系删除
 const cards = ref([
-  { title: '三体', bgImage: '../../public/images/novel/trisomy001.jpg' },
+  { title: '三体', bgImage: 'images/novel/trisomy001.jpg' },
   { title: '卡片2' },
   { title: '卡片3' },
   { title: '卡片4' },

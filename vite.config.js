@@ -12,6 +12,8 @@ import { ADDRESS } from './src/common/enum.ts';
 
 // https://vite.dev/config/
 export default defineConfig({
+    // 静态资源统一托管在远程服务器（见 src/utils/asset.js），打包时不复制 public 目录
+    publicDir: false,
     configureWebpack: (config) => {
         if (process.env.NODE_ENV === 'production') {
             // 生产环境：移除 vconsole

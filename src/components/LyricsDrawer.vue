@@ -6,7 +6,7 @@
         <img
           v-if="song.cover"
           class="lyrics-thumb"
-          :src="song.cover"
+          :src="getAssetUrl(song.cover)"
           :alt="song.title"
           draggable="false"
         />
@@ -58,6 +58,7 @@
 <script setup>
 import { ref, watch, nextTick, onMounted, onBeforeUnmount } from 'vue';
 import SvgPlay from './svgIcon/SvgPlay.vue';
+import { getAssetUrl } from '../utils/asset';
 import SvgPause from './svgIcon/SvgPause.vue';
 import { getLengthPxByRatio } from '../utils/lpx';
 

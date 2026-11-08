@@ -1,11 +1,13 @@
 <template>
     <div>
-        <div class="card" :style="{ backgroundImage: `url(${bgImage || '../../public/images/novel/novel002.png'})` }" />
+        <div class="card" :style="{ backgroundImage: `url(${getAssetUrl(bgImage || 'images/novel/novel002.png')})` }" />
         <h3 class="card-title">{{ title }}</h3>
     </div>
 </template>
 
 <script setup>
+import { getAssetUrl } from '../utils/asset'
+
 defineProps({
   title: String,
   content: String,

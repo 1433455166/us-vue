@@ -58,6 +58,7 @@ import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import BackButton from '../components/BackButton.vue'
 import musicListData from '../data/musicList.json'
+import { getAssetUrl } from '../utils/asset'
 
 const route = useRoute()
 const router = useRouter()
@@ -111,7 +112,7 @@ const loadLyrics = async (lyricsPath) => {
   }
   
   try {
-    const response = await fetch(lyricsPath)
+    const response = await fetch(getAssetUrl(lyricsPath))
     if (response.ok) {
       const text = await response.text()
       lyrics.value = parseLyrics(text)
@@ -234,7 +235,7 @@ const getCurrentSong = (songId, startTime = 0, shouldPlay = false) => {
     loadLyrics(song.lyrics)
     // 设置音频源
     if (audioRef.value) {
-      audioRef.value.src = song.src
+      audioRef.value.src = getAssetUrl(song.src)
       audioRef.value.load()
       
       // 设置播放位置

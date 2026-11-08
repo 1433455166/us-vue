@@ -1,4 +1,7 @@
 import message from './message';
+import { ADDRESS } from '../common/enum';
+
+const API_BASE_URL = import.meta.env.DEV ? '' : `http://${ADDRESS}`;
 
 // 添加超时控制的辅助函数
 const fetchWithTimeout = (url, options = {}, timeout = 5000) => {
@@ -36,7 +39,7 @@ const request = {
     }
     
     return new Promise((resolve, reject) => {
-      fetchWithTimeout('lzApi' + url)
+      fetchWithTimeout(`${API_BASE_URL}/lzApi${url}`)
         .then((response) => response.json())
         .then((res) => {
           if (res.success) {
@@ -57,7 +60,7 @@ const request = {
   },
   post(url, data) {
     return new Promise((resolve, reject) => {
-      fetchWithTimeout('lzApi' + url, {
+      fetchWithTimeout(`${API_BASE_URL}/lzApi${url}`, {
         method: "POST",
         body: JSON.stringify({
           ...data,
