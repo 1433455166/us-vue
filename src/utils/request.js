@@ -1,7 +1,8 @@
 import message from './message';
 import { ADDRESS } from '../common/enum';
 
-const API_BASE_URL = import.meta.env.DEV ? '' : `http://${ADDRESS}`;
+// const API_BASE_URL = import.meta.env.DEV ? '' : `http://${ADDRESS}`;
+const API_BASE_URL = '';
 
 // 添加超时控制的辅助函数
 const fetchWithTimeout = (url, options = {}, timeout = 5000) => {

@@ -1,9 +1,15 @@
 import { createRouter, createWebHashHistory } from "vue-router";
+import { isMobileDevice } from "../utils/device";
 
 const routes = [
     {
         path: "/",
         redirect: "/index",
+    },
+    {
+        path: "/pc",
+        name: "pc",
+        component: () => import("../views/pc.vue"),
     },
     {
         path: "/index",
@@ -72,6 +78,18 @@ const routes = [
 const router = createRouter({
   history: createWebHashHistory(),
   routes,
+});
+
+// 设备检测：PC 浏览器统一重定向到 PC 页面；
+// 手机浏览器与 DevTools 移动设备模式（发送移动端 UA）可正常访问原页面
+router.beforeEach((to) => {
+  const mobile = isMobileDevice();
+  if (!mobile && to.path !== "/pc") {
+    return "/pc";
+  }
+  if (mobile && to.path === "/pc") {
+    return "/index";
+  }
 });
 
 export default router;
