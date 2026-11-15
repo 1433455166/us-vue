@@ -548,14 +548,15 @@ defineExpose({
 @media (max-width: 768px) {
   .modal-container {
     width: 100vw !important;
-    margin: 0 auto;
-    border-radius: 16px 16px 0 0;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    transform: translateY(0);
+    max-width: 100vw;
     max-height: 85vh;
+    border-radius: 16px 16px 0 0;
+    top: 50%;
+    left: 50%;
+    bottom: auto;
+    right: auto;
+    margin: 0;
+    transform: translate(-50%, -50%);
   }
   
   /* 移动端动画 */
@@ -569,19 +570,19 @@ defineExpose({
   
   @keyframes slideUpIn {
     from {
-      transform: translateY(100%);
+      transform: translate(-50%, -50%) translateY(100%);
     }
     to {
-      transform: translateY(0);
+      transform: translate(-50%, -50%) translateY(0);
     }
   }
   
   @keyframes slideUpOut {
     from {
-      transform: translateY(0);
+      transform: translate(-50%, -50%) translateY(0);
     }
     to {
-      transform: translateY(100%);
+      transform: translate(-50%, -50%) translateY(100%);
     }
   }
   
