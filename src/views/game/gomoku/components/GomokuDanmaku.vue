@@ -60,7 +60,9 @@ const PASTEL_COLORS = [
 export default {
   name: 'GomokuDanmaku',
   props: {
-    items: { type: Array, default: () => [] }
+    items: { type: Array, default: () => [] },
+    // 是否允许语音播报：仅两位对局玩家开启，观众弹幕一律静音
+    voiceEnabled: { type: Boolean, default: true }
   },
   emits: ['send'],
   data() {
@@ -105,13 +107,13 @@ export default {
     },
     // 快捷语：发送弹幕的同时语音播报（点击即用户手势，满足浏览器播放条件）
     sendQuick(q) {
-      speak(q)
-      this.emitSend(q, true)
+      if (this.voiceEnabled) speak(q)
+      this.emitSend(q, this.voiceEnabled)
     },
     sendCustom() {
       const value = this.text.trim()
       if (!value) return
-      this.emitSend(value)
+      this.emitSend(value, this.voiceEnabled)
       this.text = ''
       this.showEmoji = false
     }

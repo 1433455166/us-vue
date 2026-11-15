@@ -28,9 +28,26 @@
           <button class="online-btn join" @click="$emit('join-room')">加入房间</button>
         </div>
         <div v-if="onlineTip" class="online-tip">{{ onlineTip }}</div>
+        <!-- 实时房间列表：等待中点击加入对局，对局中点击围观 -->
+        <div v-if="rooms.length" class="room-list">
+          <div class="room-list-title">🏠 当前开放的房间（实时）</div>
+          <div
+            v-for="room in rooms"
+            :key="room.code"
+            class="room-item"
+            @click="$emit('pick-room', room.code)"
+          >
+            <span class="room-item-code">房间 {{ room.code }}</span>
+            <span class="room-item-tag" :class="{ playing: room.started }">
+              {{ room.started ? `对局中 · ${room.spectators}人围观` : '等待玩家加入' }}
+            </span>
+          </div>
+        </div>
+        <div v-else class="room-empty">暂无开放房间，创建一个吧~</div>
         <div v-if="onlineStage === 'waiting'" class="online-wait">
           <div>房间号：<b class="room-code">{{ roomCode }}</b></div>
           <button class="copy-btn" @click="$emit('copy-link')">📋 点击复制邀请链接</button>
+          <button class="cancel-btn" @click="$emit('leave-room')">↩️ 取消房间</button>
         </div>
       </div>
       <button v-else class="start-btn" @click="$emit('start')">🚀 开始游戏</button>
@@ -46,9 +63,10 @@ export default {
     onlineStage: { type: String, default: 'idle' },
     onlineTip: { type: String, default: '' },
     roomCode: { type: String, default: '' },
-    joinCode: { type: String, default: '' }
+    joinCode: { type: String, default: '' },
+    rooms: { type: Array, default: () => [] }
   },
-  emits: ['update:mode', 'update:joinCode', 'start', 'create-room', 'join-room', 'copy-link'],
+  emits: ['update:mode', 'update:joinCode', 'start', 'create-room', 'join-room', 'copy-link', 'pick-room', 'leave-room'],
   data() {
     return {
       modeItems: [
@@ -63,7 +81,7 @@ export default {
 
 <style scoped>
 .start-stage {
-  padding: 40px 20px;
+  padding: 49lpx 36lpx;
   text-align: center;
   background: #f9e7c2;
 }
@@ -86,17 +104,17 @@ export default {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 10px;
-  margin-top: 6px;
+  gap: 18lpx;
+  margin-top: 8lpx;
 }
 .mode-item {
-  padding: 12px 18px;
+  padding: 12lpx 18lpx;
   border-radius: 15px;
   border: 3px solid transparent;
   background: #fff;
   color: #52412b; /* 显式指定深棕色，避免继承外层白色文字 */
   font-weight: bold;
-  font-size: 16px;
+  font-size: 27lpx;
   cursor: pointer;
   transition: transform 0.15s;
 }
@@ -205,5 +223,74 @@ export default {
   background: #60a5fa;
   color: white;
   cursor: pointer;
+}
+.cancel-btn {
+  padding: 8px 14px;
+  font-size: 14px;
+  font-weight: bold;
+  border: none;
+  border-radius: 12px;
+  background: #e8ddc8;
+  color: #8b6b45;
+  cursor: pointer;
+}
+
+/* ---------- 实时房间列表 ---------- */
+.room-list {
+  width: 100%;
+  max-height: 180px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: #fff;
+  padding: 10px;
+  border-radius: 15px;
+}
+.room-list-title {
+  font-size: 13px;
+  font-weight: bold;
+  color: #8b6b45;
+}
+.room-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: #f6edd9;
+  cursor: pointer;
+  transition: transform 0.15s, background 0.15s;
+}
+.room-item:hover {
+  background: #ffeed0;
+  transform: translateY(-1px);
+}
+.room-item:active {
+  transform: scale(0.97);
+}
+.room-item-code {
+  font-size: 15px;
+  font-weight: bold;
+  color: #52412b;
+  letter-spacing: 1px;
+}
+.room-item-tag {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 3px 8px;
+  border-radius: 10px;
+  background: #d9ecd0;
+  color: #2c8a4b;
+}
+.room-item-tag.playing {
+  background: #ffe3e0;
+  color: #d64045;
+}
+.room-empty {
+  font-size: 12px;
+  color: #a08c71;
 }
 </style>

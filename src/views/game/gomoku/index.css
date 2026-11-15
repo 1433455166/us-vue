@@ -1,0 +1,178 @@
+.game-wrapper {
+  min-height: 100vh;
+  background: linear-gradient(145deg, #1a5f7a, #0e3b4a);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: Arial, sans-serif;
+  padding: 10px;
+}
+
+.game-container {
+  width: 100%;
+  max-width: 500px;
+  background: #fff8e1;
+  border-radius: 49lpx;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.game-main {
+  padding: 20px 15px 25px;
+}
+
+.top-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 15px;
+  position: relative;
+  z-index: 1001;
+}
+/* 状态胶囊：占满剩余空间，文案过长时省略 */
+.status {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 16px;
+  background: #2a5f6e;
+  color: #ffe9b0;
+  font-weight: bold;
+  font-size: 13px;
+  box-shadow: 0 2px 8px rgba(42, 95, 110, 0.25);
+}
+.status-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.status-dot {
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #5be08b;
+  box-shadow: 0 0 0 3px rgba(91, 224, 139, 0.18);
+}
+.status.wait .status-dot {
+  background: #ffd166;
+  box-shadow: 0 0 0 3px rgba(255, 209, 102, 0.22);
+  animation: dot-breathe 1.4s ease-in-out infinite;
+}
+.status.win {
+  background: #d64045;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(214, 64, 69, 0.3);
+}
+.status.win .status-dot {
+  background: #fff;
+  box-shadow: none;
+}
+@keyframes dot-breathe {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* 操作区：纯图标圆形按钮 */
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  font-size: 15px;
+  line-height: 1;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.icon-btn:active {
+  transform: scale(0.92);
+}
+.icon-btn:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+@media (hover: hover) {
+  .icon-btn:not(:disabled):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  }
+}
+.undo-btn {
+  background: #60a5fa;
+}
+.reset-btn {
+  background: #daa06a;
+}
+.voice-btn {
+  position: relative;
+  background: #ff9f1c;
+}
+/* 接通中：呼吸光圈 */
+.voice-btn.calling {
+  background: #f4b400;
+  animation: voice-ring 1.2s ease-in-out infinite;
+}
+/* 通话中：绿色 + 右上角在线小圆点 */
+.voice-btn.connected {
+  background: #2c8a4b;
+}
+.voice-btn.connected::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #8ef7a4;
+  border: 2px solid #2c8a4b;
+}
+@keyframes voice-ring {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(244, 180, 0, 0.55);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(244, 180, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status.wait .status-dot,
+  .voice-btn.calling {
+    animation: none;
+  }
+}
+
+.tip-bar {
+  text-align: center;
+  margin-top: 12px;
+  padding: 10px;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 14px;
+  background: #e6dcc8;
+  color: #52412b;
+}

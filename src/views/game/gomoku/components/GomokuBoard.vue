@@ -1,24 +1,45 @@
 <template>
-  <div class="board" @touchmove.prevent>
-    <div class="grid-lines"></div>
-    <div class="cells">
-      <div
-        v-for="cell in cells"
-        :key="cell.index"
-        class="cell"
-        :class="{
-          black: cell.value === 1,
-          white: cell.value === 2,
-          last: isLastMove(cell),
-          win: isWinCell(cell),
-        }"
-        @click="$emit('pick', cell)"
-      ></div>
+  <div class="board-wrap">
+    <div class="coord-corner"></div>
+    <div class="coord-cols">
+      <span v-for="(label, i) in colLabels" :key="`c${i}`">{{ label }}</span>
+    </div>
+    <div class="coord-rows">
+      <span v-for="(label, i) in rowLabels" :key="`r${i}`">{{ label }}</span>
+    </div>
+
+    <div class="board" @touchmove.prevent>
+      <div class="grid-lines"></div>
+      <div class="cells">
+        <div
+          v-for="cell in cells"
+          :key="cell.index"
+          class="cell"
+          :class="{
+            black: cell.value === 1,
+            white: cell.value === 2,
+            last: isLastMove(cell),
+            win: isWinCell(cell),
+          }"
+          :title="coordOf(cell)"
+          @click="$emit('pick', cell)"
+        ></div>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
+import { SIZE } from '../utils/gomoku.constants'
+
+// 坐标标：列用大写字母 A-O，行用小写字母 a-o，左上角即 Aa
+const COL_LABELS = Array.from({ length: SIZE }, (_, i) =>
+  String.fromCodePoint(65 + i)
+)
+const ROW_LABELS = Array.from({ length: SIZE }, (_, i) =>
+  String.fromCodePoint(97 + i)
+)
+
 export default {
   name: 'GomokuBoard',
   props: {
@@ -27,6 +48,12 @@ export default {
     winCells: { type: Array, default: () => [] }
   },
   emits: ['pick'],
+  data() {
+    return {
+      colLabels: COL_LABELS,
+      rowLabels: ROW_LABELS
+    }
+  },
   methods: {
     isLastMove(cell) {
       return (
@@ -39,12 +66,43 @@ export default {
       return this.winCells.some(
         (p) => p.row === cell.row && p.col === cell.col
       )
+    },
+    // 单元格坐标，如左上角为 Aa
+    coordOf(cell) {
+      return `${COL_LABELS[cell.col]}${ROW_LABELS[cell.row]}`
     }
   }
 }
 </script>
 
 <style scoped>
+.board-wrap {
+  display: grid;
+  grid-template-columns: 1.15em 1fr;
+  grid-template-rows: 1.15em 1fr;
+  gap: 2px;
+}
+/* 坐标标 */
+.coord-cols {
+  display: grid;
+  grid-template-columns: repeat(15, 1fr);
+}
+.coord-rows {
+  display: grid;
+  grid-template-rows: repeat(15, 1fr);
+}
+.coord-cols span,
+.coord-rows span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(8px, 2.1vw, 11px);
+  font-weight: bold;
+  line-height: 1;
+  color: rgba(90, 60, 30, 0.55);
+  user-select: none;
+}
+
 .board {
   position: relative;
   width: 100%;

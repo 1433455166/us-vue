@@ -9,27 +9,49 @@
         :online-stage="onlineStage"
         :online-tip="onlineTip"
         :room-code="roomCode"
+        :rooms="visibleRooms"
         @start="startGame"
         @create-room="online.createRoom"
         @join-room="online.joinRoom"
+        @pick-room="pickRoom"
+        @leave-room="backToStart"
         @copy-link="copyLink"
       />
 
       <!-- 游戏主界面 -->
       <div v-else class="game-main">
         <div class="top-bar">
-          <div class="status" :class="{ win: gameOver }">{{ statusText }}</div>
+          <div class="status" :class="statusTone">
+            <span class="status-dot"></span>
+            <span class="status-text">{{ statusText }}</span>
+          </div>
           <div class="top-actions">
+            <gomoku-spectators v-if="mode === 'online'" :items="spectators" />
             <button
-              v-if="mode === 'online' && onlineStage === 'playing'"
-              class="voice-btn"
-              :class="{ active: voiceState === 'connected' }"
+              v-if="role !== 'spectator' && mode === 'online' && onlineStage === 'playing'"
+              class="icon-btn voice-btn"
+              :class="{
+                calling: voiceState === 'calling',
+                connected: voiceState === 'connected',
+              }"
+              :title="voiceTitle"
+              :aria-label="voiceTitle"
               @click="toggleVoice"
-            >
-              {{ voiceState === 'connected' ? '🔊 挂断' : voiceState === 'calling' ? '📞 接通中' : '🎙️ 语音' }}
-            </button>
-            <button class="undo-btn" @click="undoMove" :disabled="!canUndo">↩️ 悔棋</button>
-            <button class="reset-btn" @click="backToStart">🏠 主页</button>
+            >{{ voiceIcon }}</button>
+            <button
+              v-if="role !== 'spectator'"
+              class="icon-btn undo-btn"
+              title="悔棋"
+              aria-label="悔棋"
+              :disabled="!canUndo"
+              @click="undoMove"
+            >↩️</button>
+            <button
+              class="icon-btn reset-btn"
+              title="返回主页"
+              aria-label="返回主页"
+              @click="backToStart"
+            >🏠</button>
           </div>
         </div>
 
@@ -42,16 +64,17 @@
 
         <div class="tip-bar">{{ tipText }}</div>
 
-        <!-- 弹幕（联机对局中可用） -->
+        <!-- 弹幕（联机对局中可用；语音播报仅限两位对局玩家，观众静音） -->
         <gomoku-danmaku
           v-if="mode === 'online' && onlineStage === 'playing'"
           :items="danmakuList"
+          :voice-enabled="role !== 'spectator'"
           @send="handleDanmakuSend"
         />
 
-        <!-- 对局结束弹窗 -->
+        <!-- 对局结束弹窗（延迟 1s 出现，先看清棋盘上的连线） -->
         <gomoku-over-modal
-          v-if="gameOver"
+          v-if="showOverModal"
           :winner-text="winnerText"
           @restart="resetGame"
           @home="backToStart"
@@ -95,18 +118,24 @@
 </template>
 
 <script setup>
-import { ref, computed, onBeforeUnmount } from 'vue'
+import { ref, watch, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
 import GomokuStart from './components/GomokuStart.vue'
 import GomokuBoard from './components/GomokuBoard.vue'
 import GomokuOverModal from './components/GomokuOverModal.vue'
 import GomokuConfirmModal from './components/GomokuConfirmModal.vue'
 import GomokuDanmaku from './components/GomokuDanmaku.vue'
-import { SIZE, EMPTY, BLACK, WHITE } from './utils/gomoku.constants'
+import GomokuSpectators from './components/GomokuSpectators.vue'
 import { useGomokuBoard } from './utils/useGomokuBoard'
-import { findBestMove } from './utils/gomokuAI'
 import { useOnlineGame } from './utils/useOnlineGame'
-import { useVoiceChat } from './utils/useVoiceChat'
+import { useGomokuAI } from './utils/useGomokuAI'
+import { useGomokuVoice } from './utils/useGomokuVoice'
+import { useGomokuDanmaku } from './utils/useGomokuDanmaku'
+import { useGomokuTexts } from './utils/useGomokuTexts'
+import { useGomokuRemote } from './utils/useGomokuRemote'
+import { useGomokuLobby } from './utils/useGomokuLobby'
+import { useGomokuActions } from './utils/useGomokuActions'
+import { copyInviteLink } from './utils/copyInviteLink'
 import { speak, stopSpeak } from './utils/speech'
 
 const route = useRoute()
@@ -127,13 +156,42 @@ const {
   undoOfColor
 } = useGomokuBoard()
 
+/* ---------- 本地状态 ---------- */
+const showStart = ref(true)
+const mode = ref('ai') // pvp 双人 / ai 人机 / online 联机
+const showLeaveConfirm = ref(false)
+// 联机悔棋：undoPending 我方等待对方确认 / showUndoConfirm 对方请求待确认
+const undoPending = ref(false)
+const showUndoConfirm = ref(false)
+const undoRequestColor = ref(0)
+const undoTimer = ref(null)
+const notice = ref('')
+// 观众视角：房间对局是否已开始（sync 下发时标记）
+const roomStarted = ref(true)
+let overModalTimer = null
+
+/* ---------- 人机 AI ---------- */
+const { aiThinking, aiMove, clearAiTimer } = useGomokuAI({
+  board,
+  history,
+  doMove,
+  checkEnd
+})
+
 /* ---------- 联机对战 ---------- */
 const online = useOnlineGame({
   onStart: () => {
     initBoard()
     showStart.value = false
   },
-  onRemoteMove: applyRemoteMove,
+  // 房主下发棋局：以观众身份进入，回放当前棋谱
+  onSync: (msg) => handleSync(msg),
+  // 断线重连后的棋局补齐：保持原角色
+  onResync: (msg) => handleResync(msg),
+  // 房主下发 sync 时提供当前棋谱（同步用于围观）
+  getHistory: () =>
+    history.value.map((m) => ({ row: m.row, col: m.col })),
+  onRemoteMove: (msg) => applyRemoteMove(msg),
   // 对方请求悔棋：弹出确认框，由本方决定是否同意
   onRequestUndo: (color) => {
     undoRequestColor.value = color
@@ -156,65 +214,99 @@ const online = useOnlineGame({
     if (voice) speak(text)
   },
   // 对方语音信令（SDP/ICE 等），交给语音模块处理
-  onVoiceSignal: (msg) => voice.handleSignal(msg),
+  onVoiceSignal: (msg) => handleVoiceSignal(msg),
   onRestart: () => initBoard(),
-  // 对方离开：关闭连接并回到主页，避免残留对局状态导致无法重新加入
+  // 对方/房主离开：关闭连接并回到主页，避免残留对局状态导致无法重新加入
   onLeave: () => {
+    const wasSpectator = role.value === 'spectator'
     online.closeWs()
+    role.value = 'player'
     onlineStage.value = 'idle'
     showStart.value = true
-    onlineTip.value = '对方已离开，房间已关闭'
+    onlineTip.value = wasSpectator ? '房主已离开，房间已关闭' : '对方已离开，房间已关闭'
   }
 })
 const { onlineStage, onlineTip, roomCode, joinCode, myColor } = online
+const { role, spectators } = online
 
 /* ---------- 语音通话 ---------- */
-const voice = useVoiceChat((action, extra) => online.sendSignal(action, extra), {
-  onError: (tip) => (notice.value = tip),
-  onIncomingCall: (sdp) => {
-    incomingOffer.value = sdp
-    showVoiceConfirm.value = true
-  }
-})
-const { voiceState } = voice
-const showVoiceConfirm = ref(false)
-const incomingOffer = ref(null)
+const {
+  voiceState,
+  voiceIcon,
+  voiceTitle,
+  showVoiceConfirm,
+  toggleVoice,
+  acceptVoice,
+  rejectVoice,
+  hangUp,
+  handleSignal: handleVoiceSignal
+} = useGomokuVoice({ online, setNotice: (tip) => (notice.value = tip) })
 
-/* ---------- 本地状态 ---------- */
-const showStart = ref(true)
-const mode = ref('ai') // pvp 双人 / ai 人机 / online 联机
-const aiThinking = ref(false)
-const showLeaveConfirm = ref(false)
-// 联机悔棋：undoPending 我方等待对方确认 / showUndoConfirm 对方请求待确认
-const undoPending = ref(false)
-const showUndoConfirm = ref(false)
-const undoRequestColor = ref(0)
-const notice = ref('')
-let aiTimer = null
-let undoTimer = null
+/* ---------- 远端落子与棋局回放 ---------- */
+const { applyRemoteMove, replayHistory } = useGomokuRemote({
+  board,
+  history,
+  lastMove,
+  turn,
+  gameOver,
+  checkEnd,
+  undoPending,
+  undoTimer,
+  notice,
+  onlineStage
+})
 
 /* ---------- 弹幕 ---------- */
-const danmakuList = ref([])
-let danmakuId = 0
-function addDanmaku(text, self) {
-  const id = ++danmakuId
-  danmakuList.value.push({
-    id,
-    text,
-    self,
-    top: 40 + Math.random() * 220
+const { danmakuList, addDanmaku, handleDanmakuSend } = useGomokuDanmaku({
+  mode,
+  onlineStage,
+  sendChat: online.sendChat
+})
+
+/* ---------- 界面文案与状态 ---------- */
+const { cells, tipText, statusText, statusTone, winnerText, canUndo } =
+  useGomokuTexts({
+    board,
+    mode,
+    role,
+    roomCode,
+    myColor,
+    gameOver,
+    winner,
+    turn,
+    onlineStage,
+    undoPending,
+    roomStarted,
+    history,
+    aiThinking,
+    notice
   })
-  // 动画结束后自动清理（动画时长 9s）
-  setTimeout(() => {
-    danmakuList.value = danmakuList.value.filter((d) => d.id !== id)
-  }, 9200)
-}
-function handleDanmakuSend({ text, voice }) {
-  addDanmaku(text, true)
-  if (mode.value === 'online' && onlineStage.value === 'playing') {
-    online.sendChat(text, voice)
+
+// 对局结束后延迟 1s 再弹结果，先让玩家看清棋盘上的五连
+const showOverModal = ref(false)
+watch(gameOver, (val) => {
+  clearTimeout(overModalTimer)
+  if (val) {
+    overModalTimer = setTimeout(() => (showOverModal.value = true), 1000)
+  } else {
+    showOverModal.value = false
   }
-}
+})
+
+/* ---------- 围观与房间列表 ---------- */
+const { handleSync, handleResync, pickRoom, visibleRooms } = useGomokuLobby({
+  online,
+  mode,
+  showStart,
+  role,
+  roomCode,
+  joinCode,
+  onlineStage,
+  roomStarted,
+  notice,
+  initBoard,
+  replayHistory
+})
 
 initBoard()
 
@@ -226,376 +318,77 @@ if (room) {
   online.joinRoom()
 }
 
+// 切后台：暂停围观心跳并通知名单移除；回前台恢复（连接断开则走自动重连）
+function handlePageHide() {
+  online.pauseWatch()
+}
+function handlePageShow() {
+  online.resumeWatch()
+}
+window.addEventListener('pagehide', handlePageHide)
+window.addEventListener('pageshow', handlePageShow)
+
 onBeforeUnmount(() => {
-  clearTimeout(aiTimer)
-  clearTimeout(undoTimer)
+  clearAiTimer()
+  clearTimeout(undoTimer.value)
+  clearTimeout(overModalTimer)
+  window.removeEventListener('pagehide', handlePageHide)
+  window.removeEventListener('pageshow', handlePageShow)
+  online.leaveWatch()
+  online.leaveLobby()
   online.closeWs()
   stopSpeak()
 })
 
-/* ---------- 计算属性 ---------- */
-const cells = computed(() => {
-  const list = []
-  for (let row = 0; row < SIZE; row++) {
-    for (let col = 0; col < SIZE; col++) {
-      list.push({
-        index: row * SIZE + col,
-        row,
-        col,
-        value: board.value[row][col]
-      })
-    }
-  }
-  return list
-})
-
-const tipText = computed(() => {
-  if (notice.value) return notice.value
-  if (mode.value === 'online') {
-    return `房间 ${roomCode.value} · 你执${
-      myColor.value === BLACK ? '黑（先行）' : '白（后行）'
-    }棋`
-  }
-  return mode.value === 'ai'
-    ? '你执黑先行，AI 执白应战'
-    : '黑方先行，点击棋盘落子'
-})
-
-const statusText = computed(() => {
-  if (gameOver.value) {
-    return winner.value === BLACK ? '⚫ 黑方获胜！' : '⚪ 白方获胜！'
-  }
-  if (mode.value === 'online') {
-    if (onlineStage.value !== 'playing') return '等待对手加入…'
-    if (undoPending.value) return '等待对方确认悔棋…'
-    return turn.value === myColor.value
-      ? `轮到你落子（${myColor.value === BLACK ? '黑棋' : '白棋'}）`
-      : '等待对方落子…'
-  }
-  if (mode.value === 'ai') {
-    return turn.value === BLACK ? '轮到你落子（黑棋）' : 'AI 思考中…'
-  }
-  return turn.value === BLACK ? '轮到黑方落子' : '轮到白方落子'
-})
-
-const winnerText = computed(() => {
-  if (mode.value === 'online') {
-    return winner.value === myColor.value
-      ? '🏆 你赢了！五子连线！'
-      : '😔 你输了，再接再厉！'
-  }
-  return winner.value === BLACK
-    ? '🏆 黑方五子连线，取得胜利！'
-    : '🏆 白方五子连线，取得胜利！'
-})
-
-const canUndo = computed(() => {
-  if (gameOver.value || history.value.length === 0) return false
-  if (mode.value === 'online') {
-    // 联机模式：对局中且至少有一手棋时可悔棋
-    return onlineStage.value === 'playing'
-  }
-  if (mode.value === 'ai') {
-    // 人机模式：AI 思考中不允许悔棋
-    return !aiThinking.value
-  }
-  return true
-})
-
 /* ---------- 对局操作 ---------- */
-function startGame() {
-  initBoard()
-  showStart.value = false
-}
-
-function backToStart() {
-  // 联机对局中离开：先弹确认框，确认后才关闭房间并通知对方
-  if (mode.value === 'online' && onlineStage.value === 'playing') {
-    showLeaveConfirm.value = true
-    return
-  }
-  doLeaveRoom()
-}
-
-function doLeaveRoom() {
-  clearTimeout(aiTimer)
-  aiThinking.value = false
-  showLeaveConfirm.value = false
-  showVoiceConfirm.value = false
-  if (mode.value === 'online') {
-    voice.hangUp() // 离开前挂断语音（未通话时为空操作）
-    if (onlineStage.value === 'playing') {
-      online.sendLeave()
-    }
-  }
-  online.closeWs()
-  onlineStage.value = 'idle'
-  onlineTip.value = ''
-  showStart.value = true
-}
-
-function resetGame() {
-  initBoard()
-  if (mode.value === 'online') {
-    online.sendRestart()
-  }
-}
-
-function placeStone(cell) {
-  const { row, col } = cell
-  if (gameOver.value || aiThinking.value) return
-  if (undoPending.value) return // 悔棋等待确认期间禁止落子
-  if (board.value[row][col] !== EMPTY) return
-  notice.value = ''
-  if (mode.value === 'ai' && turn.value !== BLACK) return
-  if (
-    mode.value === 'online' &&
-    (onlineStage.value !== 'playing' || turn.value !== myColor.value)
-  ) {
-    return
-  }
-  doMove(row, col)
-  if (mode.value === 'online') {
-    online.sendMove(row, col, history.value.length - 1)
-  }
-  if (checkEnd(row, col)) return
-  if (mode.value === 'ai' && turn.value === WHITE) {
-    aiMove()
-  }
-}
-
-function undoMove() {
-  if (!canUndo.value || history.value.length === 0) return
-  if (mode.value === 'online') {
-    // 联机悔棋：发送请求，等待对方确认后才生效
-    online.sendUndoRequest()
-    undoPending.value = true
-    notice.value = ''
-    clearTimeout(undoTimer)
-    undoTimer = setTimeout(() => {
-      if (undoPending.value) {
-        undoPending.value = false
-        notice.value = '对方未响应悔棋请求'
-      }
-    }, 10000)
-    return
-  }
-  // 人机模式撤销后轮到玩家（黑棋），成对撤销
-  undo(mode.value === 'ai' ? 2 : 1)
-}
-
-function acceptUndo() {
-  const color = undoRequestColor.value
-  showUndoConfirm.value = false
-  online.sendUndoAccept(color)
-  // 按请求方颜色回放撤销，之后轮到请求方行棋
-  undoOfColor(color)
-  notice.value = ''
-}
-
-function rejectUndo() {
-  showUndoConfirm.value = false
-  online.sendUndoReject()
-}
-
-/* ---------- 语音通话 ---------- */
-function toggleVoice() {
-  if (voiceState.value === 'idle') {
-    voice.startCall()
-  } else {
-    voice.hangUp()
-  }
-}
-
-function acceptVoice() {
-  showVoiceConfirm.value = false
-  const sdp = incomingOffer.value
-  incomingOffer.value = null
-  if (sdp) {
-    voice.acceptCall(sdp)
-  }
-}
-
-function rejectVoice() {
-  showVoiceConfirm.value = false
-  voice.rejectCall()
-  incomingOffer.value = null
-}
-
-function aiMove() {
-  aiThinking.value = true
-  // 稍作延迟，模拟思考并让界面有机会渲染
-  aiTimer = setTimeout(() => {
-    const best = findBestMove(board.value, history.value)
-    aiThinking.value = false
-    if (best) {
-      doMove(best.row, best.col)
-      checkEnd(best.row, best.col)
-    }
-  }, 300)
-}
-
-// 对手落子：按步数序号 + 奇偶校验，防乱序/重复，保证双方棋盘一致
-function applyRemoteMove(msg) {
-  const { row, col, seq } = msg
-  if (
-    gameOver.value ||
-    onlineStage.value !== 'playing' ||
-    typeof row !== 'number' ||
-    typeof col !== 'number' ||
-    seq !== history.value.length
-  ) {
-    return
-  }
-  // 对方已继续落子，未处理的悔棋请求自动失效
-  if (undoPending.value) {
-    undoPending.value = false
-    clearTimeout(undoTimer)
-    notice.value = '对方已落子，悔棋请求已失效'
-  }
-  const player = seq % 2 === 0 ? BLACK : WHITE
-  if (board.value[row][col] !== EMPTY) return
-  board.value[row][col] = player
-  history.value.push({ row, col, player })
-  lastMove.value = { row, col }
-  turn.value = player === BLACK ? WHITE : BLACK
-  checkEnd(row, col)
-}
+const {
+  startGame,
+  backToStart,
+  doLeaveRoom,
+  resetGame,
+  placeStone,
+  undoMove,
+  acceptUndo,
+  rejectUndo
+} = useGomokuActions({
+  online,
+  mode,
+  showStart,
+  role,
+  onlineStage,
+  onlineTip,
+  board,
+  history,
+  turn,
+  gameOver,
+  notice,
+  undoPending,
+  undoTimer,
+  showLeaveConfirm,
+  showUndoConfirm,
+  undoRequestColor,
+  showVoiceConfirm,
+  roomStarted,
+  canUndo,
+  aiThinking,
+  myColor,
+  initBoard,
+  doMove,
+  checkEnd,
+  undo,
+  undoOfColor,
+  aiMove,
+  clearAiTimer,
+  hangUp
+})
 
 /* ---------- 邀请链接复制 ---------- */
-// 兼容 HTTP 环境（局域网 IP 访问）：clipboard API 不可用时回退到 execCommand
 function copyLink() {
-  const url = `${location.origin}${location.pathname}#/game/gomoku?room=${roomCode.value}`
-  const fallbackShow = () => {
-    onlineTip.value = `复制失败，请手动复制：${url}`
-  }
-  const legacyCopy = () => {
-    try {
-      const ta = document.createElement('textarea')
-      ta.value = url
-      ta.style.position = 'fixed'
-      ta.style.opacity = '0'
-      document.body.appendChild(ta)
-      ta.select()
-      const ok = document.execCommand('copy')
-      document.body.removeChild(ta)
-      onlineTip.value = ok ? '链接已复制，发给好友即可加入' : ''
-      if (!ok) fallbackShow()
-    } catch (e) {
-      fallbackShow()
-    }
-  }
-  if (navigator.clipboard && window.isSecureContext) {
-    navigator.clipboard
-      .writeText(url)
-      .then(() => (onlineTip.value = '链接已复制，发给好友即可加入'))
-      .catch(legacyCopy)
-  } else {
-    legacyCopy()
-  }
+  copyInviteLink(
+    `${location.origin}${location.pathname}#/game/gomoku?room=${roomCode.value}`,
+    (tip) => (onlineTip.value = tip)
+  )
 }
 </script>
 
-<style scoped>
-.game-wrapper {
-  min-height: 100vh;
-  background: linear-gradient(145deg, #1a5f7a, #0e3b4a);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-family: Arial, sans-serif;
-  padding: 10px;
-}
-
-.game-container {
-  width: 100%;
-  max-width: 500px;
-  background: #fff8e1;
-  border-radius: 40px;
-  overflow: hidden;
-  position: relative;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-}
-
-.game-main {
-  padding: 20px 15px 25px;
-}
-
-.top-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-  position: relative;
-  z-index: 1001;
-}
-.status {
-  background: #2a5f6e;
-  color: #f9e0a0;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-weight: bold;
-  font-size: 14px;
-  white-space: nowrap;
-}
-.status.win {
-  background: #d64045;
-  color: #fff;
-}
-.top-actions {
-  display: flex;
-  flex-shrink: 0;
-}
-.undo-btn,
-.reset-btn {
-  padding: 6px 10px;
-  margin-left: 6px;
-  border: none;
-  border-radius: 15px;
-  font-weight: bold;
-  font-size: 13px;
-  white-space: nowrap;
-  cursor: pointer;
-}
-.undo-btn {
-  background: #60a5fa;
-  color: white;
-}
-.voice-btn {
-  padding: 6px 10px;
-  margin-left: 6px;
-  border: none;
-  border-radius: 15px;
-  font-weight: bold;
-  font-size: 13px;
-  white-space: nowrap;
-  cursor: pointer;
-  background: #ff9f1c;
-  color: white;
-}
-.voice-btn.active {
-  background: #2c8a4b;
-}
-.voice-btn:active {
-  transform: scale(0.95);
-}
-.reset-btn {
-  background: #daa06a;
-  color: white;
-}
-.undo-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.tip-bar {
-  text-align: center;
-  margin-top: 12px;
-  padding: 10px;
-  border-radius: 20px;
-  font-weight: bold;
-  font-size: 14px;
-  background: #e6dcc8;
-  color: #52412b;
-}
-</style>
+<style scoped src="./index.css"></style>
