@@ -20,7 +20,6 @@
         <div class="top-bar">
           <div class="status" :class="{ win: gameOver }">{{ statusText }}</div>
           <div class="top-actions">
-            <!-- 语音通话暂不上线，注释入口保留代码
             <button
               v-if="mode === 'online' && onlineStage === 'playing'"
               class="voice-btn"
@@ -29,7 +28,6 @@
             >
               {{ voiceState === 'connected' ? '🔊 挂断' : voiceState === 'calling' ? '📞 接通中' : '🎙️ 语音' }}
             </button>
-            -->
             <button class="undo-btn" @click="undoMove" :disabled="!canUndo">↩️ 悔棋</button>
             <button class="reset-btn" @click="backToStart">🏠 主页</button>
           </div>
@@ -81,7 +79,7 @@
           @cancel="rejectUndo"
         />
 
-        <!-- 语音通话暂不上线，注释入口保留代码
+        <!-- 对方语音通话邀请弹窗 -->
         <gomoku-confirm-modal
           v-if="showVoiceConfirm"
           title="语音通话邀请"
@@ -91,7 +89,6 @@
           @confirm="acceptVoice"
           @cancel="rejectVoice"
         />
-        -->
       </div>
     </div>
   </div>
@@ -158,6 +155,8 @@ const online = useOnlineGame({
     addDanmaku(text, false)
     if (voice) speak(text)
   },
+  // 对方语音信令（SDP/ICE 等），交给语音模块处理
+  onVoiceSignal: (msg) => voice.handleSignal(msg),
   onRestart: () => initBoard(),
   // 对方离开：关闭连接并回到主页，避免残留对局状态导致无法重新加入
   onLeave: () => {

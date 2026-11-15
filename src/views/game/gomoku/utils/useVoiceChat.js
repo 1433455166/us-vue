@@ -64,15 +64,24 @@ export function useVoiceChat(sendSignal, { onError, onIncomingCall }) {
       onError('无法获取麦克风权限，已拒绝接听')
       return
     }
-    role = 'callee'
-    createPeer()
-    localStream.getTracks().forEach((track) => pc.addTrack(track, localStream))
-    await pc.setRemoteDescription({ type: 'offer', sdp: offerSdp })
-    flushCandidates()
-    const answer = await pc.createAnswer()
-    await pc.setLocalDescription(answer)
-    sendSignal('voice-answer', { sdp: pc.localDescription })
-    voiceState.value = 'calling'
+    try {
+      role = 'callee'
+      createPeer()
+      localStream.getTracks().forEach((track) => pc.addTrack(track, localStream))
+      // offerSdp 已是 {type, sdp} 结构（网络传输后为普通对象），直接使用
+      await pc.setRemoteDescription(offerSdp)
+      flushCandidates()
+      const answer = await pc.createAnswer()
+      await pc.setLocalDescription(answer)
+      sendSignal('voice-answer', { sdp: pc.localDescription })
+      voiceState.value = 'calling'
+    } catch (e) {
+      // SDP 无效等情况：释放资源并通知对方忙线
+      sendSignal('voice-reject')
+      cleanup()
+      voiceState.value = 'idle'
+      onError('接听失败，请重试')
+    }
   }
 
   function rejectCall() {
@@ -103,7 +112,8 @@ export function useVoiceChat(sendSignal, { onError, onIncomingCall }) {
       case 'voice-answer':
         if (!pc || role !== 'caller') return
         clearTimeout(callTimer)
-        pc.setRemoteDescription({ type: 'answer', sdp: msg.sdp }).catch(() => {})
+        // msg.sdp 已是 {type, sdp} 结构，直接使用
+        pc.setRemoteDescription(msg.sdp).catch(() => {})
         flushCandidates()
         break
       case 'voice-ice':

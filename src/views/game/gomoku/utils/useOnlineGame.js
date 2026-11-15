@@ -62,7 +62,15 @@ export function useOnlineGame({
     closeWs()
     onlineTip.value = '正在连接服务器…'
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-    const socket = new WebSocket(`${protocol}//${ADDRESS}/chat`)
+    let wsUrl
+    if (window.location.protocol === 'https:') {
+      // HTTPS 页面受混合内容策略限制无法直连 ws:// 后端，
+      // 改连当前域名下的 /chat（由 vite dev server 的 WebSocket 代理转发）
+      wsUrl = `${protocol}//${window.location.host}/chat`
+    } else {
+      wsUrl = `${protocol}//${ADDRESS}/chat`
+    }
+    const socket = new WebSocket(wsUrl)
     ws.value = socket
     socket.onopen = () => {
       if (ws.value !== socket) return

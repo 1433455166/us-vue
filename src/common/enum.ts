@@ -12,9 +12,8 @@ export enum ROUTER_TYPE {
   musicList = 'musicList', // 音乐列表
 };
 
-// java 接口地址 731
-// 本地 192.168.31.39
-// 线上环境 222.186.56.152
-// export const ADDRESS = "222.186.56.152:731"
-export const ADDRESS = "192.168.31.39:731"
-// export const ADDRESS = "103.236.89.43:31135"
+// java 接口地址
+// 通过 Vite 环境变量 VITE_ADDRESS 区分环境：
+//   本地开发 (.env.development) 192.168.31.39:731
+//   线上部署   (.env.production) 103.236.89.43:31135
+export const ADDRESS = import.meta.env.VITE_ADDRESS || "192.168.31.39:731"

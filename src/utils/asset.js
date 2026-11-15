@@ -1,6 +1,8 @@
-// public 静态资源基础地址，可通过环境变量 VITE_ASSET_BASE 覆盖
-const ASSET_BASE = import.meta.env.VITE_ASSET_BASE || 'http://103.236.89.43:52772/static/';
-console.log("ASSET_BASE", import.meta.env.VITE_ASSET_BASE);
+// public 静态资源基础地址，由 .env 文件的 VITE_ASSET_BASE 决定：
+// - 本地开发（.env.development）：留空 → 同源相对路径，资源由 vite dev server 托管 public 目录
+// - 线上（.env.production）：配置完整的静态资源服务器地址
+// 注意用 ?? 而非 ||：空字符串是合法配置（同源），不应触发兜底
+const ASSET_BASE = import.meta.env.VITE_ASSET_BASE ?? '';
 
 /**
  * 获取 public 目录下静态资源的完整 URL

@@ -94,6 +94,7 @@ export default {
   border-radius: 15px;
   border: 3px solid transparent;
   background: #fff;
+  color: #52412b; /* 显式指定深棕色，避免继承外层白色文字 */
   font-weight: bold;
   font-size: 16px;
   cursor: pointer;

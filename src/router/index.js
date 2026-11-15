@@ -86,14 +86,12 @@ const router = createRouter({
 });
 
 // 设备检测：PC 浏览器统一重定向到 PC 页面；
-// 手机浏览器与 DevTools 移动设备模式（发送移动端 UA）可正常访问原页面
+// 手机浏览器与 DevTools 移动设备模式（发送移动端 UA）可正常访问原页面，
+// 已进入的页面（含 /pc）刷新时保持当前路由，不再强制跳转
 router.beforeEach((to) => {
   const mobile = isMobileDevice();
   if (!mobile && to.path !== "/pc") {
     return "/pc";
-  }
-  if (mobile && to.path === "/pc") {
-    return "/index";
   }
 });
 

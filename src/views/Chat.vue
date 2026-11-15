@@ -56,8 +56,14 @@ export default {
     connect() {
       // 连接到Java后端WebSocket服务
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-      const url = `${protocol}//${ADDRESS}/chat`
-      
+      let url
+      if (window.location.protocol === 'https:') {
+        // HTTPS 页面无法直连 ws:// 后端（混合内容拦截），走同域反代
+        url = `${protocol}//${window.location.host}/chat`
+      } else {
+        url = `${protocol}//${ADDRESS}/chat`
+      }
+
       this.ws = new WebSocket(url)
       
       this.ws.onopen = () => {
