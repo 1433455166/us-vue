@@ -1,8 +1,14 @@
 import { createApp } from 'vue';
+import Cookies from 'js-cookie';
 import './style.css';
 import App from './App.vue';
 import router from "./router";
 import ModalManager from './components/Modal/ModalManager.vue'
+
+// 本地启动（npm run start）时，在 cookie 中存 env=true
+if (import.meta.env.DEV) {
+  Cookies.set('env', 'true');
+}
 
 // 全局样式
 import './assets/css/global.css';

@@ -11,9 +11,9 @@ import { ADDRESS } from './src/common/enum.ts';
 // const address = 'http://115.190.127.28:731'; // 线上环境
 
 // https://vite.dev/config/
-export default defineConfig({
-    // 静态资源统一托管在远程服务器（见 src/utils/asset.js），打包时不复制 public 目录
-    publicDir: false,
+export default defineConfig(({ command }) => ({
+    // 本地启动时由 dev server 直接托管 public 目录；打包时不复制 public（静态资源托管在远程服务器，见 src/utils/asset.js）
+    publicDir: command === 'serve' ? 'public' : false,
     configureWebpack: (config) => {
         if (process.env.NODE_ENV === 'production') {
             // 生产环境：移除 vconsole
@@ -52,4 +52,4 @@ export default defineConfig({
       ]
     }
   }
-})
+}))

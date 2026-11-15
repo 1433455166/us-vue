@@ -1,14 +1,23 @@
 <template>
   <div class="game-wrapper">
     <div class="game-container">
-      <!-- 开场动画 -->
-      <div v-if="showIntro" class="intro-stage">
-        <div class="animation-box">
-          <div class="main-word" :key="introText.main">{{ introText.main }}</div>
-          <div class="sub-word">{{ introText.sub }}</div>
+      <!-- 开始界面：点击开始后才进入倒计时 -->
+      <div v-if="showStart" class="start-stage">
+        <div class="start-box">
+          <div class="main-word">🧮 九九乘法挑战赛</div>
+          <div class="sub-word">限时5秒快速作答，答错即刻结束</div>
           <div class="mode-tip-show">
             本局模式：{{ globalIsCorrectMode ? '✅ 正确九九乘法表' : '❌ 错位错误九九乘法表' }}
           </div>
+          <button class="start-btn" @click="startGame">🚀 开始游戏</button>
+        </div>
+      </div>
+
+      <!-- 开场倒计时动画 -->
+      <div v-else-if="showIntro" class="intro-stage">
+        <div class="animation-box">
+          <div class="main-word" :key="introText.main">{{ introText.main }}</div>
+          <div class="sub-word">{{ introText.sub }}</div>
           <div class="countdown-badge">{{ introCountdown }}</div>
         </div>
       </div>
@@ -80,7 +89,8 @@
 export default {
   data() {
     return {
-      showIntro: true,
+      showStart: true,
+      showIntro: false,
       introStep: 0,
       introCountdown: 3,
       introTimer: null,
@@ -113,20 +123,26 @@ export default {
       ][this.introStep]
     }
   },
-  mounted() {
-    this.startIntro()
-  },
+  mounted() {},
   beforeDestroy() {
     clearInterval(this.introTimer)
     clearInterval(this.gameTimer)
   },
   methods: {
-    startIntro() {
-      // 开局前就随机锁定本局模式，并展示出来
+    startGame() {
+      // 点击开始后，先随机锁定本局模式，再进入3秒倒计时
       this.globalIsCorrectMode = Math.random() < this.correctRate
+      this.showStart = false
+      this.showIntro = true
+      this.introStep = 0
+      this.introCountdown = 3
+      this.startIntro()
+    },
+
+    startIntro() {
       this.introTimer = setInterval(() => {
-        if (this.introStep < 2) {
-          this.introStep++
+        if (this.introCountdown > 1) {
+          this.introStep = Math.min(this.introStep + 1, 2)
           this.introCountdown--
         } else {
           clearInterval(this.introTimer)
@@ -219,7 +235,8 @@ export default {
 
     resetGame() {
       clearInterval(this.gameTimer)
-      this.showIntro = true
+      this.showIntro = false
+      this.showStart = true
       this.introStep = 0
       this.introCountdown = 3
     }
@@ -246,6 +263,37 @@ export default {
   overflow: hidden;
   position: relative;
   box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+
+.start-stage {
+  padding: 40px 20px;
+  text-align: center;
+  background: #f9e7c2;
+}
+.start-box {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: center;
+}
+.start-btn {
+  margin-top: 10px;
+  padding: 14px 40px;
+  font-size: 22px;
+  font-weight: bold;
+  border: none;
+  border-radius: 25px;
+  background: linear-gradient(135deg, #ff9f1c, #d64045);
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(214, 64, 69, 0.4);
+  transition: transform 0.15s;
+}
+.start-btn:hover {
+  transform: scale(1.05);
+}
+.start-btn:active {
+  transform: scale(0.95);
 }
 
 .intro-stage {
@@ -293,6 +341,9 @@ export default {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 15px;
+  position: relative;
+  /* 保证暂停/重置按钮浮在暂停遮罩之上，可继续操作 */
+  z-index: 1001;
 }
 .score {
   background: #2a5f6e;

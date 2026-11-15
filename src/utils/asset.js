@@ -1,5 +1,6 @@
 // public 静态资源基础地址，可通过环境变量 VITE_ASSET_BASE 覆盖
-const ASSET_BASE = import.meta.env.VITE_ASSET_BASE || 'http://103.236.89.43:52772/static/'
+const ASSET_BASE = import.meta.env.VITE_ASSET_BASE || 'http://103.236.89.43:52772/static/';
+console.log("ASSET_BASE", import.meta.env.VITE_ASSET_BASE);
 
 /**
  * 获取 public 目录下静态资源的完整 URL

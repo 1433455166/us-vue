@@ -13,7 +13,8 @@ export enum ROUTER_TYPE {
 };
 
 // java 接口地址 731
-// 本地 192.168.31.40
+// 本地 192.168.31.39
 // 线上环境 222.186.56.152
 // export const ADDRESS = "222.186.56.152:731"
-export const ADDRESS = "103.236.89.43:31135"
+export const ADDRESS = "192.168.31.39:731"
+// export const ADDRESS = "103.236.89.43:31135"

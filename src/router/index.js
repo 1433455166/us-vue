@@ -72,6 +72,11 @@ const routes = [
         path: '/game/multiplicationTable',
         name: 'multiplicationTable',
         component: () => import("../views/game/multiplicationTable.vue"),
+    },
+    {
+        path: '/game/gomoku',
+        name: 'gomoku',
+        component: () => import("../views/game/gomoku/index.vue"),
     }
 ];
 
