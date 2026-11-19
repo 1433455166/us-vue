@@ -20,7 +20,7 @@ import MusicPlayer from '../components/MusicPlayer.vue'
 import BackButton from '../components/BackButton.vue'
 import PasswordGuard from '../components/PasswordGuard.vue'
 import Cookies from 'js-cookie'
-import { accessPassword } from '../common/const'
+import { getPasswordLevel, PASSWORD_LEVEL } from '../common/const'
 import musicListData from '../data/musicList.json'
 
 // 认证状态
@@ -64,7 +64,7 @@ watch(() => route.query.songId, (newSongId) => {
 onMounted(() => {
   // 检查cookie中是否有有效的访问密码
   const storedPassword = Cookies.get('accessPassword')
-  if (storedPassword && storedPassword === accessPassword) {
+  if (getPasswordLevel(storedPassword) > PASSWORD_LEVEL.GUEST) {
     isAuthenticated.value = true
   }
 

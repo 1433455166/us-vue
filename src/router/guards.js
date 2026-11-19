@@ -2,34 +2,25 @@
 import { createApp, h } from 'vue';
 import Cookies from 'js-cookie';
 import PasswordGuard from '../components/PasswordGuard.vue';
-import { accessPassword } from '../common/const';
+import { getPasswordLevel, PASSWORD_LEVEL } from '../common/const';
 
-export const passwordGuard = (to, from, next) => {
-//   console.log('Password guard triggered for', to.path); // 调试信息
-    // 检查 cookie
-    const storedPassword = Cookies.get('accessPassword');
-    if (storedPassword && storedPassword === accessPassword) {
-        next();
-        return;
-    }
-
+// 挂载 PasswordGuard 密码弹窗，验证成功后触发 onSuccess 并自动清理
+export const showPasswordGuard = (onSuccess = () => {}) => {
   // 创建一个 Vue 应用实例
   const app = createApp({
     setup() {
-      const onSuccess = () => {
-        console.log('Password is correct, continuing to', to.path); // 调试信息
+      return () => h(PasswordGuard, {
+        onSuccess: () => {
+          // 清理
+          const modalElement = document.getElementById('password-guard-modal');
+          if (modalElement) {
+            app.unmount();
+            document.body.removeChild(modalElement);
+          }
 
-        // 清理
-        const modalElement = document.getElementById('password-guard-modal');
-        if (modalElement) {
-          app.unmount();
-          document.body.removeChild(modalElement);
-        }
-
-        next();
-      };
-
-      return () => h(PasswordGuard, { onSuccess });
+          onSuccess();
+        },
+      });
     },
   });
 
@@ -49,9 +40,16 @@ export const passwordGuard = (to, from, next) => {
 
   app.mount(modal);
 //   console.log('app', app, modal); // 调试信息
+};
 
-  // 检查 modal 内容
-//   setTimeout(() => {
-//     console.log('Modal content after mount:', modal.innerHTML);
-//   }, 1000);
+export const passwordGuard = (to, from, next) => {
+//   console.log('Password guard triggered for', to.path); // 调试信息
+    // 检查 cookie
+    const storedPassword = Cookies.get('accessPassword');
+    if (getPasswordLevel(storedPassword) > PASSWORD_LEVEL.GUEST) {
+        next();
+        return;
+    }
+
+    showPasswordGuard(() => next());
 };

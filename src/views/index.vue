@@ -1,6 +1,10 @@
 <template>
   <div class="app">
     <header ref="headerRef" class='header'>
+        <div class="header-icons">
+            <button class="icon-entry" title="网站声明" aria-label="网站声明" @click="goDeclaration">📜</button>
+            <button class="icon-entry" title="访问密码" aria-label="访问密码" @click="showPasswordGuardFlag = true">🔑</button>
+        </div>
         <div class="width-300">
             <h2>陈大爷个人项目</h2>
             <div class="clock">{{ currentTime }}</div>
@@ -26,6 +30,24 @@
     >
         <DailyPop v-if="showModal" :daily-data="dailyPopData" />
     </BaseModal>
+    <PasswordModal v-model="showPasswordGuardFlag" />
+    <BaseModal
+        v-model="showMoreModal"
+        title="更多页面"
+        :animation="true"
+        animation-type="zoom"
+        width="280px"
+        :show-footer="false"
+    >
+        <div class="more-list">
+            <div
+                v-for="page in morePages"
+                :key="page.path"
+                class="more-item"
+                @click="goTo(page.path)"
+            >{{ page.title }}</div>
+        </div>
+    </BaseModal>
   </div>
 </template>
 
@@ -33,21 +55,34 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ROUTER_TYPE } from '../common/enum'
+import { getPasswordLevel, PASSWORD_LEVEL } from '../common/const'
+import Cookies from 'js-cookie'
+import message from '../utils/message'
 import { getPopDailyV2 } from '../utils/api'
 import DeviceCard from '../components/DeviceCard.vue'
 import DailyPop from '../components/DailyPop.vue'
+import PasswordModal from '../components/PasswordModal.vue'
 import BaseModal from '../components/Modal/BaseModal.vue';
 
 // 卡片数据
 const cards = ref([
-  { title: '弹窗测试', content: '点击弹出一个测试弹窗, 已弃用' },
-  { title: '小说', content: '点击跳转小说页面', router: ROUTER_TYPE.bookList },
+  { title: '小说列表', content: '点击跳转小说列表页面', router: ROUTER_TYPE.bookList },
   { title: '音乐列表', content: '点击跳转音乐列表页面', router: ROUTER_TYPE.musicList },
-  { title: '网站声明', content: '点击跳转网站声明页面', router: ROUTER_TYPE.declaration },
+  { title: '游戏列表', content: '点击进入游戏列表页面', router: ROUTER_TYPE.gameList },
+  { title: '弹窗测试', content: '点击弹出一个测试弹窗, 已弃用' },
+  { title: '更多页面', content: 'Love、Chat 等隐藏页面入口（仅管理员）', more: true },
   { title: '卡片3', content: '卡片3 内容' },
 ])
 
+// 更多页面内的页面入口
+const morePages = [
+  { title: '💗 Love', path: '/love' },
+  { title: '💬 Chat', path: '/chat' }
+]
+
 const showModal = ref(false);
+const showPasswordGuardFlag = ref(false);
+const showMoreModal = ref(false);
 const baseModalRef = ref(null);
 const router = useRouter();
 const dailyPopData = ref({
@@ -139,9 +174,28 @@ onMounted(() => {
 })
 
 const handleCardClick = (data) => {
+  // 更多页面：仅管理员（等级2）可打开
+  if (data?.more) {
+    const level = getPasswordLevel(Cookies.get('accessPassword'))
+    if (level >= PASSWORD_LEVEL.ADMIN) {
+      showMoreModal.value = true
+    } else {
+      message.error('更多页面需要管理员身份访问')
+    }
+    return
+  }
   if (data?.router) {
     router.push(`/${data?.router}`)
   }
+}
+
+const goTo = (path) => {
+  showMoreModal.value = false
+  router.push(path)
+}
+
+const goDeclaration = () => {
+  router.push(`/${ROUTER_TYPE.declaration}`)
 }
 
 const handleConfirm = () => {
@@ -171,6 +225,55 @@ const handleConfirm = () => {
   align-items: center;
   /* 确保没有 transform 干扰 */
   transform: none;
+  position: relative;
+}
+
+.header-icons {
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.icon-entry {
+  width: 40lpx;
+  height: 40lpx;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  font-size: 18lpx;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.icon-entry:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.more-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.more-item {
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 16px;
+  color: #333;
+  cursor: pointer;
+  transition: border-color 0.2s, background-color 0.2s, color 0.2s;
+}
+
+.more-item:hover {
+  border-color: #6a11cb;
+  background: #f5f0ff;
+  color: #6a11cb;
 }
 
 .header h1 {

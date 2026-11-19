@@ -1,5 +1,6 @@
 <template>
   <div class="game-wrapper">
+    <BackButton class="game-back" />
     <div class="game-container">
       <!-- 开始界面 -->
       <gomoku-start
@@ -120,6 +121,7 @@
 <script setup>
 import { ref, watch, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
+import BackButton from '../../../components/BackButton.vue'
 import GomokuStart from './components/GomokuStart.vue'
 import GomokuBoard from './components/GomokuBoard.vue'
 import GomokuOverModal from './components/GomokuOverModal.vue'

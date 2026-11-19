@@ -1,5 +1,6 @@
 <template>
   <div class="game-wrapper">
+    <BackButton class="game-back" />
     <div class="game-container">
       <!-- 开始界面：点击开始后才进入倒计时 -->
       <div v-if="showStart" class="start-stage">
@@ -9,7 +10,10 @@
           <div class="mode-tip-show">
             本局模式：{{ globalIsCorrectMode ? '✅ 正确九九乘法表' : '❌ 错位错误九九乘法表' }}
           </div>
-          <button class="start-btn" @click="startGame">🚀 开始游戏</button>
+          <div class="start-actions">
+            <button class="dice-btn" @click="rollMode" title="重新随机本局模式">🎲</button>
+            <button class="start-btn" @click="startGame">🚀 开始游戏</button>
+          </div>
         </div>
       </div>
 
@@ -86,7 +90,12 @@
 </template>
 
 <script>
+import BackButton from '../../components/BackButton.vue'
+
 export default {
+  components: {
+    BackButton
+  },
   data() {
     return {
       showStart: true,
@@ -96,7 +105,7 @@ export default {
       introTimer: null,
 
       globalIsCorrectMode: false,
-      correctRate: 0.1,
+      correctRate: 0.3,
 
       gameOver: false,
       isPaused: false,
@@ -123,15 +132,20 @@ export default {
       ][this.introStep]
     }
   },
-  mounted() {},
+  mounted() {
+    this.rollMode()
+  },
   beforeDestroy() {
     clearInterval(this.introTimer)
     clearInterval(this.gameTimer)
   },
   methods: {
-    startGame() {
-      // 点击开始后，先随机锁定本局模式，再进入3秒倒计时
+    rollMode() {
       this.globalIsCorrectMode = Math.random() < this.correctRate
+    },
+
+    startGame() {
+      // 模式由骰子决定，点击开始直接使用当前模式
       this.showStart = false
       this.showIntro = true
       this.introStep = 0
@@ -253,6 +267,11 @@ export default {
   align-items: center;
   font-family: Arial, sans-serif;
   padding: 10px;
+  position: relative;
+}
+
+.game-back {
+  z-index: 1002;
 }
 
 .game-container {
@@ -276,8 +295,29 @@ export default {
   gap: 15px;
   align-items: center;
 }
-.start-btn {
+.start-actions {
   margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.dice-btn {
+  font-size: 28px;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 20px;
+  background: #fff;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transition: transform 0.15s;
+}
+.dice-btn:hover {
+  transform: scale(1.1);
+}
+.dice-btn:active {
+  transform: rotate(180deg) scale(0.95);
+}
+.start-btn {
   padding: 14px 40px;
   font-size: 22px;
   font-weight: bold;
@@ -393,6 +433,7 @@ export default {
   font-size: 36px;
   font-weight: bold;
   margin-bottom: 15px;
+  color: #2b3b42;
 }
 .timer {
   font-size: 18px;
@@ -486,6 +527,7 @@ export default {
 .modal-box p {
   font-size: 18px;
   margin: 8px 0;
+  color: #2b3b42;
 }
 .restart-btn {
   margin-top: 20px;

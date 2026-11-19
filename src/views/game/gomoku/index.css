@@ -6,6 +6,11 @@
   align-items: center;
   font-family: Arial, sans-serif;
   padding: 10px;
+  position: relative;
+}
+
+.game-back {
+  z-index: 1002;
 }
 
 .game-container {

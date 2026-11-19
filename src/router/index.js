@@ -77,6 +77,11 @@ const routes = [
         path: '/game/gomoku',
         name: 'gomoku',
         component: () => import("../views/game/gomoku/index.vue"),
+    },
+    {
+        path: '/gameList',
+        name: 'gameList',
+        component: () => import("../views/gameList.vue"),
     }
 ];
 

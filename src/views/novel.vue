@@ -27,7 +27,7 @@ import { ref, onMounted } from 'vue'
 import NovelCard from '../components/NovelCard.vue'
 import PasswordGuard from '../components/PasswordGuard.vue'
 import Cookies from 'js-cookie'
-import { accessPassword } from '../common/const'
+import { getPasswordLevel, PASSWORD_LEVEL } from '../common/const'
 
 // 认证状态
 const isAuthenticated = ref(false)
@@ -49,7 +49,7 @@ const handleAuthSuccess = () => {
 // 页面加载时检查cookie
 onMounted(() => {
   const storedPassword = Cookies.get('accessPassword')
-  if (storedPassword && storedPassword === accessPassword) {
+  if (getPasswordLevel(storedPassword) > PASSWORD_LEVEL.GUEST) {
     isAuthenticated.value = true
   }
 })

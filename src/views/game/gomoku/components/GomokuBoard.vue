@@ -135,8 +135,12 @@ export default {
   border-right: 1px solid rgba(90, 60, 30, 0.55);
   border-bottom: 1px solid rgba(90, 60, 30, 0.55);
 }
-.cell:nth-child(15n) {
+.cell:nth-child(15n)::before {
   border-right: none;
+}
+/* 最下行不画下边框，避免超出棋盘圆角 */
+.cell:nth-child(n + 211)::before {
+  border-bottom: none;
 }
 
 /* 棋子 */
@@ -161,19 +165,10 @@ export default {
   background: radial-gradient(circle at 35% 30%, #ffffff, #d8d8d8 65%);
   box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.35);
 }
-/* 最后落子标记：棋子中心红点 */
+/* 最后落子标记：棋子中心红点（保留网格线，用背景渐变画点） */
 .cell.last::before {
-  border: none;
-  inset: auto;
-  left: 50%;
-  top: 50%;
-  width: 24%;
-  height: 24%;
-  transform: translate(-50%, -50%);
-  background: #e63946;
-  border-radius: 50%;
-  box-shadow: 0 0 2px rgba(255, 255, 255, 0.8);
   z-index: 1;
+  background: radial-gradient(circle, #e63946 0 16%, transparent 17%);
 }
 /* 获胜连线标记 */
 .cell.win::after {

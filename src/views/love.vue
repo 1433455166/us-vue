@@ -2,13 +2,35 @@
   <div style="background-color: black">
     <canvas v-if="isAuthenticated" ref="canvas" width="100%" height="100%"></canvas>
     <PasswordGuard v-else @success="handleAuthSuccess" />
+    <button
+      v-if="isAuthenticated"
+      class="edit-btn"
+      :class="{ active: btnActive }"
+      @click="handleEditClick"
+    >✎</button>
+    <div v-if="showEditModal" class="modal-mask" @click.self="showEditModal = false">
+      <div class="modal">
+        <p class="modal-title">TA是谁？</p>
+        <input
+          v-model="loverInput"
+          class="modal-input"
+          placeholder="输入TA的名字"
+          maxlength="10"
+          @keyup.enter="confirmLover"
+        />
+        <div class="modal-actions">
+          <button class="modal-btn" @click="confirmLover">确定</button>
+          <button class="modal-btn cancel" @click="showEditModal = false">取消</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 import PasswordGuard from '../components/PasswordGuard.vue'
 import Cookies from 'js-cookie'
-import { accessPassword } from '../common/const'
+import { getPasswordLevel, PASSWORD_LEVEL } from '../common/const'
 
 export default {
   components: {
@@ -16,21 +38,41 @@ export default {
   },
   data() {
     return {
-      isAuthenticated: false
+      isAuthenticated: false,
+      showEditModal: false,
+      btnActive: false,
+      lover: '',
+      loverInput: ''
     }
   },
   mounted() {
     // 检查cookie中是否有有效的访问密码
     const storedPassword = Cookies.get('accessPassword')
-    if (storedPassword && storedPassword === accessPassword) {
+    if (getPasswordLevel(storedPassword) > PASSWORD_LEVEL.GUEST) {
       this.isAuthenticated = true
-      this.initCanvas()
+      this.$nextTick(this.initCanvas)
     }
   },
   methods: {
     handleAuthSuccess() {
       this.isAuthenticated = true
-      this.initCanvas()
+      this.$nextTick(this.initCanvas)
+    },
+    handleEditClick() {
+      if (this.btnActive) return
+      this.btnActive = true
+      this.loverInput = this.lover
+      this.showEditModal = true
+      setTimeout(() => {
+        this.btnActive = false
+      }, 3000)
+    },
+    confirmLover() {
+      this.lover = (this.loverInput || '').trim()
+      this.showEditModal = false
+      if (this.refreshTexts) {
+        this.refreshTexts()
+      }
     },
     initCanvas() {
       var hearts = [];
@@ -83,6 +125,7 @@ export default {
       }
 
       // 获取随机文字
+      var loverName = this.lover || "";
       function getText() {
 
           const textArray = [
@@ -110,8 +153,17 @@ export default {
               'My heart is yours!',
           ];
           const randomIndex = Math.floor(Math.random() * textArray.length);
-          return textArray[randomIndex];
+          return loverName ? loverName + "，" + textArray[randomIndex] : textArray[randomIndex];
       }
+
+      // 更新对象名字并重新展示文案
+      var self = this;
+      this.refreshTexts = function () {
+        loverName = self.lover || "";
+        for (var i = 0; i < hearts.length; i++) {
+          hearts[i].text = getText();
+        }
+      };
 
       function Heart(type) {
         this.type = type;
@@ -140,9 +192,9 @@ export default {
         this.text = getText();
 
         this.fvel = {
-          x: (Math.random() - 0.5) * 5,
-          y: (Math.random() - 0.5) * 5,
-          f: (Math.random() - 0.5) * 2,
+          x: (Math.random() - 0.5) * 1.5,
+          y: (Math.random() - 0.5) * 1.5,
+          f: Math.random() * 0.3 + 0.1,
         };
       }
 
@@ -187,6 +239,9 @@ export default {
         this.fy += this.fvel.y;
         this.fs += this.fvel.f;
 
+        if (this.fs < 2) {
+          this.fs = 2;
+        }
         if (this.fs > 50) {
           this.fs = 2;
         }
@@ -216,4 +271,75 @@ export default {
 };
 </script>
 
-<style lang="postcss" scoped></style>
+<style lang="postcss" scoped>
+.edit-btn {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-size: 20px;
+  line-height: 40px;
+  text-align: center;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.3s;
+  z-index: 10;
+}
+.edit-btn.active {
+  opacity: 1;
+}
+.modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+.modal {
+  background: #fff;
+  border-radius: 8px;
+  padding: 24px;
+  width: 280px;
+}
+.modal-title {
+  margin: 0;
+  font-size: 16px;
+  color: #333;
+}
+.modal-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px;
+  margin: 12px 0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  outline: none;
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.modal-btn {
+  padding: 6px 16px;
+  border: none;
+  border-radius: 4px;
+  background: #e96d5b;
+  color: #fff;
+  cursor: pointer;
+}
+.modal-btn.cancel {
+  background: #ccc;
+}
+</style>

@@ -211,7 +211,8 @@ const handleConfirm = () => {
 }
 
 const handleEsc = (event) => {
-  if (props.closeOnPressEscape) {
+  // 只在按下 ESC 键时关闭，否则 document 级 keydown 会导致弹窗内输入任何字符都被关闭
+  if (event.key === 'Escape' && props.closeOnPressEscape) {
     event.preventDefault()
     handleClose()
   }
@@ -270,12 +271,10 @@ watch(() => props.modelValue, (newVal) => {
       }, props.enterDelay)
     }
   } else if (!newVal && visible.value) {
-    // 关闭弹窗 - 这里需要设置 isAnimating，但 visible 会在动画结束后才设置为 false
-    isAnimating.value = true
+    // 外部通过 v-model 关闭：置 visible 为 false 触发离场动画（transition 自动处理动画时长）
+    visible.value = false
+    isAnimating.value = false
     unlockBodyScroll()
-    
-    // 等待动画完成后再隐藏
-    // 注意：这里不能立即设置 visible.value = false，因为动画需要时间
   }
 }, { immediate: true })
 

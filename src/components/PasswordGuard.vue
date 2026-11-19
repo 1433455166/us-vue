@@ -21,7 +21,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { accessPassword } from '../common/const'
+import { getPasswordLevel, PASSWORD_LEVEL } from '../common/const'
 import Cookies from 'js-cookie'
 import message from '../utils/message'
 
@@ -36,11 +36,12 @@ const handleInput = (event) => {
 
 // 验证密码
 const checkPassword = () => {
-  if (password.value === accessPassword) {
+  const level = getPasswordLevel(password.value)
+  if (level > PASSWORD_LEVEL.GUEST) {
     // 密码正确，继续访问
     emit('success')
-    // 设置 cookie
-    Cookies.set('accessPassword', accessPassword, { expires: 1 }) // 有效期为1天
+    // 设置 cookie（存原始密码，校验时换算等级）
+    Cookies.set('accessPassword', password.value, { expires: 1 }) // 有效期为1天
   } else if (password.value === '') {} else {
     // 密码错误，显示提示信息
     message.error('密码错误，请联系开发大师')

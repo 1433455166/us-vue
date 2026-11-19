@@ -56,7 +56,7 @@ import SvgChevron from '../components/svgIcon/SvgChevron.vue'
 import PasswordGuard from '../components/PasswordGuard.vue'
 import { novels } from '../data/novels.js'
 import Cookies from 'js-cookie'
-import { accessPassword } from '../common/const'
+import { getPasswordLevel, PASSWORD_LEVEL } from '../common/const'
 
 const router = useRouter()
 
@@ -149,7 +149,7 @@ const handleScroll = () => {
 onMounted(() => {
     // 检查cookie中是否有有效的访问密码
     const storedPassword = Cookies.get('accessPassword')
-    if (storedPassword && storedPassword === accessPassword) {
+    if (getPasswordLevel(storedPassword) > PASSWORD_LEVEL.GUEST) {
       isAuthenticated.value = true
     }
     
