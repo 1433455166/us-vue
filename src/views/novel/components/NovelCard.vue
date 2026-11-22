@@ -6,7 +6,7 @@
 </template>
 
 <script setup>
-import { getAssetUrl } from '../utils/asset'
+import { getAssetUrl } from '../../../utils/asset'
 
 defineProps({
   title: String,

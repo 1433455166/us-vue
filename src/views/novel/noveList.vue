@@ -1,7 +1,5 @@
 <template>
   <div class="home-container">
-    <PasswordGuard v-if="!isAuthenticated" @success="handleAuthSuccess" />
-    <template v-else>
       <!-- 顶部导航 -->
       <header class="home-header">
           <BackButton />
@@ -14,7 +12,7 @@
         <section v-if="activeCategory === 'all'" class="recommend-section">
           <div class="recommend-list">
             <BookCard 
-              v-for="novel in novels"
+              v-for="novel in filteredNovels"
               :key="novel.id"
               :novel="novel"
               :view-mode="viewMode"
@@ -44,29 +42,19 @@
       >
         <SvgChevron direction="up" :size="20" />
       </button>
-    </template>
   </div>
 </template>
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import BookCard from '../components/novel/BookCard.vue'
-import BackButton from '../components/BackButton.vue'
-import SvgChevron from '../components/svgIcon/SvgChevron.vue'
-import PasswordGuard from '../components/PasswordGuard.vue'
-import { novels } from '../data/novels.js'
+import BookCard from './components/BookCard.vue'
+import BackButton from '../../components/BackButton.vue'
+import SvgChevron from '../../components/svgIcon/SvgChevron.vue'
+import { novels } from '../../data/novels.js'
 import Cookies from 'js-cookie'
-import { getPasswordLevel, PASSWORD_LEVEL } from '../common/const'
+import { getPasswordLevel, PASSWORD_LEVEL } from '../../common/const'
 
 const router = useRouter()
-
-// 认证状态
-const isAuthenticated = ref(false)
-
-// 处理认证成功
-const handleAuthSuccess = () => {
-  isAuthenticated.value = true
-}
 
 // 状态管理
 const contentRef = ref(null)
@@ -80,6 +68,12 @@ const showBackToTop = ref(false)
 // 计算属性
 const filteredNovels = computed(() => {
   let result = [...novels]
+
+  // 权限过滤：访客（非测试/管理员）仅能查看短篇小说
+  const passwordLevel = getPasswordLevel(Cookies.get('accessPassword'))
+  if (passwordLevel === PASSWORD_LEVEL.GUEST) {
+    result = result.filter(novel => novel.novelType === 'short')
+  }
   
   // 搜索筛选
   if (searchQuery.value) {
@@ -147,11 +141,6 @@ const handleScroll = () => {
 
 // 生命周期
 onMounted(() => {
-    // 检查cookie中是否有有效的访问密码
-    const storedPassword = Cookies.get('accessPassword')
-    if (getPasswordLevel(storedPassword) > PASSWORD_LEVEL.GUEST) {
-      isAuthenticated.value = true
-    }
     
     if (contentRef.value) {
         contentRef.value.addEventListener('scroll', handleScroll, { passive: true })

@@ -4,11 +4,9 @@
     <transition name="header-slide">
       <ReaderHeader 
         v-show="showControls"
-        :title="novelInfo.title" 
-        :author="novelInfo.author"
         :currentChapter="currentChapter"
+        :is-short-novel="isShortNovel"
         @toggle-chapter-list="showChapterList = !showChapterList"
-        @toggle-settings="showSettings = !showSettings"
       />
     </transition>
     
@@ -26,9 +24,15 @@
       
       <!-- 阅读进度 -->
       <div class="reader-progress">
+        <span class="progress-time">{{ currentTime }}</span>
         <div class="progress-bar" :style="{ width: `${readingProgress}%` }"></div>
         <span class="progress-text">
-          第{{ currentChapter?.id }}章 · {{ readingProgress.toFixed(1) }}%
+          <template v-if="isShortNovel">
+            {{ novelInfo.title }} · {{ readingProgress.toFixed(1) }}%
+          </template>
+          <template v-else>
+            第{{ currentChapter?.id }}章 · {{ readingProgress.toFixed(1) }}%
+          </template>
         </span>
       </div>
     </main>
@@ -39,18 +43,22 @@
             v-show="showControls"
             :currentChapter="currentChapter"
             :totalChapters="chapterData.length"
+            :is-short-novel="isShortNovel"
             @prev-chapter="goToChapter(currentChapter.id - 1)"
             @next-chapter="goToChapter(currentChapter.id + 1)"
             @toggle-night-mode="toggleNightMode"
+            @toggle-settings="showSettings = !showSettings"
         />
     </transition>
     
     <!-- 章节列表 -->
-    <transition name="slide-left">
+    <transition name="slide-up">
       <ChapterList 
         v-if="showChapterList"
         :chapters="chapters"
         :currentId="currentChapter.id"
+        :novel-info="novelInfo"
+        :is-short-novel="isShortNovel"
         @select-chapter="goToChapter"
         @close="showChapterList = false"
       />
@@ -74,16 +82,16 @@
 </template>
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import ReaderHeader from '../components/reader/ReaderHeader.vue'
-import ReaderControls from '../components/reader/ReaderControls.vue'
-import ChapterList from '../components/reader/ChapterList.vue'
-import ReaderSettings from '../components/reader/ReaderSettings.vue'
-import Loading from '../components/Loading/default.vue';
+import ReaderHeader from './components/ReaderHeader.vue'
+import ReaderControls from './components/ReaderControls.vue'
+import ChapterList from './components/ChapterList.vue'
+import ReaderSettings from './components/ReaderSettings.vue'
+import Loading from '../../components/Loading/default.vue';
 import Cookies from 'js-cookie';
 import { useRoute } from 'vue-router'
-import { novels } from '../data/novels.js'
-import threeBoby1 from '../data/threeBody/threeBoby1.json'
-import { getNovelData, getNovelList, getNovelChapterContent, getNovelVolume } from "../utils/api";
+import { novels } from '../../data/novels.js'
+import threeBoby1 from '../../data/threeBody/threeBoby1.json'
+import { getNovelData, getNovelList, getNovelChapterContent, getNovelVolume } from "../../utils/api";
 
 // 响应式数据
 const loading = ref(true)
@@ -91,6 +99,7 @@ const error = ref(false)
 const novelInfo = ref({})
 const chapters = ref([])
 const currentChapter = ref(null)
+const isShortNovel = ref(false)
 
 const route = useRoute()
 
@@ -101,10 +110,11 @@ const novelId = route.params.id
 const loadUnsheathedNovelData = async () => {
   loading.value = true
   error.value = false
+  isShortNovel.value = false
   
   try {
     // 1. 获取小说信息
-    novelInfo.value = novels.find(n => n.id === novelId) || novels[0]
+    novelInfo.value = novels.find(n => n.id === novelId) || novels[0];
 
     // 2. 获取章节列表
     const listRes = await getNovelList({ novelName: novelId, folderName: novelInfo.value.folderName });
@@ -167,6 +177,7 @@ const loadUnsheathedNovelData = async () => {
 const loadNormalNovelData = async () => {
   loading.value = true
   error.value = false
+  isShortNovel.value = false
   
   try {
     // 1. 获取小说信息
@@ -176,6 +187,19 @@ const loadNormalNovelData = async () => {
     const res = await getNovelData({ novelName: novelId, folderName: novelInfo.value.folderName });
     
     const data = res?.data || {};
+    
+    // 短篇小说兼容：无 chapterList，textList 位于顶层（novelType 为 short）
+    if (Array.isArray(data?.textList)) {
+      const singleChapter = {
+        id: 1,
+        title: data.title || novelInfo.value.title || '正文',
+        content: data.textList,
+      }
+      chapters.value = [singleChapter]
+      currentChapter.value = singleChapter
+      isShortNovel.value = true
+      return
+    }
     
     // 没有卷的数据类型
     if (res?.success && data?.chapters?.length > 0) {
@@ -314,6 +338,16 @@ const readerSettings = ref(getInitialReaderSettings())
 // 阅读进度
 const readingProgress = ref(0)
 const contentRef = ref(null)
+
+// 当前时间（时分）
+const currentTime = ref('')
+const updateCurrentTime = () => {
+  const now = new Date()
+  const hours = String(now.getHours()).padStart(2, '0')
+  const minutes = String(now.getMinutes()).padStart(2, '0')
+  currentTime.value = `${hours}:${minutes}`
+}
+let timeTimer = null
 
 // 计算属性
 const readerTheme = computed(() => ({
@@ -460,6 +494,10 @@ onMounted(() => {
     }
     window.addEventListener('keydown', handleKeyDown)
     
+    // 更新时间
+    updateCurrentTime()
+    timeTimer = setInterval(updateCurrentTime, 1000)
+    
     // 3秒后隐藏提示
     setTimeout(() => {
         showTapHint.value = false
@@ -471,6 +509,9 @@ onUnmounted(() => {
     contentRef.value.removeEventListener('scroll', scrollHandler)
   }
   window.removeEventListener('keydown', handleKeyDown)
+  if (timeTimer) {
+    clearInterval(timeTimer)
+  }
 })
 </script>
 <style scoped>
@@ -620,6 +661,14 @@ onUnmounted(() => {
   position: absolute;
   top: -36lpx;
   right: 0;
+  font-size: 24lpx;
+  color: #666;
+}
+
+.progress-time {
+  position: absolute;
+  top: -36lpx;
+  left: 0;
   font-size: 24lpx;
   color: #666;
 }

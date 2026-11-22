@@ -26,22 +26,22 @@ const routes = [
     },
     {
         path: "/novel",
-        component: () => import("../views/novel.vue"),
+        component: () => import("../views/novel/novel.vue"),
     },
     {
         path: '/bookList',
         name: 'bookList',
-        component: () => import("../views/noveList.vue"),
+        component: () => import("../views/novel/noveList.vue"),
     },
     {
         path: '/reader/:id',
         name: 'Reader',
-        component: () => import("../views/reader.vue"),
+        component: () => import("../views/novel/reader.vue"),
     },
     {
         path: '/book/:id',
         name: 'Book',
-        component: () => import("../views/reader.vue"),
+        component: () => import("../views/novel/reader.vue"),
     },
     {
         path: '/music',

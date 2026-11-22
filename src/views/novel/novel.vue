@@ -24,10 +24,10 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import NovelCard from '../components/NovelCard.vue'
-import PasswordGuard from '../components/PasswordGuard.vue'
+import NovelCard from './components/NovelCard.vue'
+import PasswordGuard from '../../components/PasswordGuard.vue'
 import Cookies from 'js-cookie'
-import { getPasswordLevel, PASSWORD_LEVEL } from '../common/const'
+import { getPasswordLevel, PASSWORD_LEVEL } from '../../common/const'
 
 // 认证状态
 const isAuthenticated = ref(false)

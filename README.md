@@ -70,3 +70,29 @@
 - 下载的音乐文件请确保格式为浏览器支持的通用格式(如 MP3、OGG 等)
 - 加密格式(如 .mgg、.ncm 等)需先转换为标准格式后再引入项目
 - 请遵守相关平台的使用条款和版权规定,仅用于个人学习和研究
+
+## 小说文本 JSON 格式
+
+`public/text/` 目录下的文本 JSON 结构如下：
+
+```json
+{
+  "title": "黑夜降临",
+  "author": "仁痴·恩痴",
+  "label": "h1",
+  "background": "#eee",
+  "novelType": "short",
+  "textList": [
+    "段落1",
+    "段落2"
+  ]
+}
+```
+
+### novelType 标识
+
+| novelType | 说明 |
+| --- | --- |
+| `short` | 短篇小说 |
+| `novel` | 普通小说（不分卷） |
+| `long` | 长篇小说（分卷） |

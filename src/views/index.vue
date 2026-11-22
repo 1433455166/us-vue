@@ -69,8 +69,8 @@ const cards = ref([
   { title: '小说列表', content: '点击跳转小说列表页面', router: ROUTER_TYPE.bookList },
   { title: '音乐列表', content: '点击跳转音乐列表页面', router: ROUTER_TYPE.musicList },
   { title: '游戏列表', content: '点击进入游戏列表页面', router: ROUTER_TYPE.gameList },
+  { title: '更多页面', content: '隐藏页面入口（仅管理员）', more: true },
   { title: '弹窗测试', content: '点击弹出一个测试弹窗, 已弃用' },
-  { title: '更多页面', content: 'Love、Chat 等隐藏页面入口（仅管理员）', more: true },
   { title: '卡片3', content: '卡片3 内容' },
 ])
 
