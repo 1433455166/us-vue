@@ -14,12 +14,13 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import BackButton from '../components/BackButton.vue'
-import MusicList from '../components/MusicList.vue'
-import PasswordGuard from '../components/PasswordGuard.vue'
+import BackButton from '../../components/BackButton.vue'
+import MusicList from './components/MusicList.vue'
+import PasswordGuard from '../../components/PasswordGuard.vue'
 import Cookies from 'js-cookie'
-import { getPasswordLevel, PASSWORD_LEVEL } from '../common/const'
-import musicListData from '../data/musicList.json'
+import { getPasswordLevel, PASSWORD_LEVEL } from '../../common/const'
+import musicListData from '../../data/musicList.json'
+import audio, { playerState, playSong } from '../../utils/audioPlayer'
 
 // 认证状态
 const isAuthenticated = ref(false)
@@ -34,10 +35,10 @@ const musicList = ref(musicListData)
 
 const router = useRouter()
 
-// 处理播放歌曲 - 跳转到音乐播放页面
+// 处理播放歌曲 - 先通过全局播放器切歌/续播，再跳转到音乐播放页面
 const handlePlaySong = (song) => {
   console.log('播放歌曲:', song.title)
-  // 跳转到音乐播放页面，传递歌曲ID并自动播放
+  playSong(song)
   router.push({ path: '/music', query: { songId: song.id, playing: 'true' } })
 }
 

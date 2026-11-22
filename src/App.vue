@@ -1,6 +1,15 @@
 <template>
-  <router-view></router-view>
+  <router-view v-slot="{ Component }">
+    <keep-alive include="music">
+      <component :is="Component" />
+    </keep-alive>
+  </router-view>
+  <FloatingMusicWidget />
 </template>
+
+<script setup>
+import FloatingMusicWidget from './views/music/components/FloatingMusicWidget.vue'
+</script>
 
 <style scoped>
 #app {

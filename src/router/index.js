@@ -46,12 +46,12 @@ const routes = [
     {
         path: '/music',
         name: 'music',
-        component: () => import("../views/music.vue"),
+        component: () => import("../views/music/music.vue"),
     },
     {
         path: '/musicList',
         name: 'musicList',
-        component: () => import("../views/musicList.vue"),
+        component: () => import("../views/music/musicList.vue"),
     },
     {
         path: '/lyrics',
@@ -81,7 +81,7 @@ const routes = [
     {
         path: '/gameList',
         name: 'gameList',
-        component: () => import("../views/gameList.vue"),
+        component: () => import("../views/game/gameList.vue"),
     }
 ];
 

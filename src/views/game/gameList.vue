@@ -1,4 +1,4 @@
-<!-- src/views/gameList.vue -->
+<!-- src/views/game/gameList.vue -->
 <template>
   <div class="game-list-page">
     <PasswordGuard v-if="!isAuthenticated" @success="handleAuthSuccess" />
@@ -21,11 +21,11 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import BackButton from '../components/BackButton.vue'
-import DeviceCard from '../components/DeviceCard.vue'
-import PasswordGuard from '../components/PasswordGuard.vue'
+import BackButton from '../../components/BackButton.vue'
+import DeviceCard from '../../components/DeviceCard.vue'
+import PasswordGuard from '../../components/PasswordGuard.vue'
 import Cookies from 'js-cookie'
-import { getPasswordLevel, PASSWORD_LEVEL } from '../common/const'
+import { getPasswordLevel, PASSWORD_LEVEL } from '../../common/const'
 
 // 认证状态
 const isAuthenticated = ref(false)

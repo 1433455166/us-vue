@@ -14,14 +14,15 @@
 </template>
 
 <script setup>
+defineOptions({ name: 'music' })
 import { ref, onMounted, watch, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import MusicPlayer from '../components/MusicPlayer.vue'
-import BackButton from '../components/BackButton.vue'
-import PasswordGuard from '../components/PasswordGuard.vue'
+import MusicPlayer from './components/MusicPlayer/index.vue'
+import BackButton from '../../components/BackButton.vue'
+import PasswordGuard from '../../components/PasswordGuard.vue'
 import Cookies from 'js-cookie'
-import { getPasswordLevel, PASSWORD_LEVEL } from '../common/const'
-import musicListData from '../data/musicList.json'
+import { getPasswordLevel, PASSWORD_LEVEL } from '../../common/const'
+import musicListData from '../../data/musicList.json'
 
 // 认证状态
 const isAuthenticated = ref(false)
@@ -49,8 +50,9 @@ const handleSongChange = (song, index) => {
   currentSongIndex.value = index
 }
 
-// 监听路由参数变化
+// 监听路由参数变化（仅音乐页自身路由，避免其他页面历史参数误触）
 watch(() => route.query.songId, (newSongId) => {
+  if (route.path !== '/music') return
   if (newSongId && playlist.value && playlist.value.length > 0) {
     const index = playlist.value.findIndex(song => song.id === parseInt(newSongId))
     if (index !== -1) {

@@ -57,10 +57,10 @@
 
 <script setup>
 import { ref, watch, nextTick, onMounted, onBeforeUnmount } from 'vue';
-import SvgPlay from './svgIcon/SvgPlay.vue';
-import { getAssetUrl } from '../utils/asset';
-import SvgPause from './svgIcon/SvgPause.vue';
-import { getLengthPxByRatio } from '../utils/lpx';
+import SvgPlay from '../../../components/svgIcon/SvgPlay.vue';
+import { getAssetUrl } from '../../../utils/asset';
+import SvgPause from '../../../components/svgIcon/SvgPause.vue';
+import { getLengthPxByRatio } from '../../../utils/lpx';
 
 const props = defineProps({
   song: { type: Object, required: true },
